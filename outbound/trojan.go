@@ -129,7 +129,8 @@ func (h *trojanDialer) DialContext(ctx context.Context, network string, destinat
 	}
 	switch N.NetworkName(network) {
 	case N.NetworkTCP:
-		return trojan.NewClientConn(conn, h.key, destination), nil
+		trojanConn := trojan.NewClientConn(conn, h.key, destination)
+		return trojanConn, common.Error(trojanConn.Write(nil))
 	case N.NetworkUDP:
 		return &bufio.BindPacketConn{PacketConn: trojan.NewClientPacketConn(conn, h.key), Addr: destination}, nil
 	default:
