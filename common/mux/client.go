@@ -62,7 +62,8 @@ func (c *Client) DialContext(ctx context.Context, network string, destination M.
 		if err != nil {
 			return nil, err
 		}
-		return &ClientConn{Conn: stream, destination: destination}, nil
+		conn := &ClientConn{Conn: stream, destination: destination}
+		return conn, common.Error(conn.Write(nil))
 	case N.NetworkUDP:
 		stream, err := c.openStream()
 		if err != nil {
