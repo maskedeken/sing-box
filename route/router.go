@@ -24,9 +24,9 @@ import (
 	"github.com/sagernet/sing-box/ntp"
 	"github.com/sagernet/sing-box/option"
 	"github.com/sagernet/sing-box/transport/fakeip"
-	"github.com/sagernet/sing-dns"
-	"github.com/sagernet/sing-tun"
-	"github.com/sagernet/sing-vmess"
+	dns "github.com/sagernet/sing-dns"
+	tun "github.com/sagernet/sing-tun"
+	vmess "github.com/sagernet/sing-vmess"
 	"github.com/sagernet/sing/common"
 	"github.com/sagernet/sing/common/buf"
 	"github.com/sagernet/sing/common/bufio"
@@ -784,7 +784,7 @@ func (r *Router) RoutePacketConnection(ctx context.Context, conn N.PacketConn, m
 		}
 	}
 	if originAddress.IsValid() {
-		conn = bufio.NewNATPacketConn(&bufio.FallbackPacketConn{PacketConn: conn}, originAddress, metadata.Destination)
+		conn = fakeip.NewNATPacketConn(conn, originAddress, metadata.Destination)
 	}
 	return detour.NewPacketConnection(ctx, conn, metadata)
 }
