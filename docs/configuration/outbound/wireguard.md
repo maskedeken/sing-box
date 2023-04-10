@@ -19,7 +19,9 @@
       "server_port": 1080,
       "public_key": "Z1XXLsKYkYxuiYjJIkRvtIKFepCYHTgON+GwPq7SOV4=",
       "pre_shared_key": "31aIhAPwktDGpH4JDhA8GNvjFXEf/a6+UaQRyOAiyfM=",
-      "allowed_ips": "0.0.0.0/0",
+      "allowed_ips": [
+        "0.0.0.0/0"
+      ],
       "reserved": [0, 0, 0]
     }
   ],

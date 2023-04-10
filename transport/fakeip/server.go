@@ -6,7 +6,7 @@ import (
 	"os"
 
 	"github.com/sagernet/sing-box/adapter"
-	"github.com/sagernet/sing-dns"
+	dns "github.com/sagernet/sing-dns"
 	E "github.com/sagernet/sing/common/exceptions"
 	"github.com/sagernet/sing/common/logger"
 	N "github.com/sagernet/sing/common/network"
@@ -21,20 +21,26 @@ func init() {
 }
 
 type Server struct {
+	name   string
 	router adapter.Router
 	store  adapter.FakeIPStore
 	logger logger.ContextLogger
 }
 
-func NewTransport(ctx context.Context, logger logger.ContextLogger, dialer N.Dialer, link string) (dns.Transport, error) {
+func NewTransport(name string, ctx context.Context, logger logger.ContextLogger, dialer N.Dialer, link string) (dns.Transport, error) {
 	router := adapter.RouterFromContext(ctx)
 	if router == nil {
 		return nil, E.New("missing router in context")
 	}
 	return &Server{
+		name:   name,
 		router: router,
 		logger: logger,
 	}, nil
+}
+
+func (s *Server) Name() string {
+	return s.name
 }
 
 func (s *Server) Start() error {

@@ -23,6 +23,7 @@ import (
 	"github.com/sagernet/sing-box/log"
 	"github.com/sagernet/sing-box/ntp"
 	"github.com/sagernet/sing-box/option"
+	"github.com/sagernet/sing-box/outbound"
 	"github.com/sagernet/sing-box/transport/fakeip"
 	dns "github.com/sagernet/sing-dns"
 	tun "github.com/sagernet/sing-tun"
@@ -223,7 +224,7 @@ func NewRouter(
 					return nil, E.New("parse dns server[", tag, "]: missing address_resolver")
 				}
 			}
-			transport, err := dns.CreateTransport(ctx, logFactory.NewLogger(F.ToString("dns/transport[", tag, "]")), detour, server.Address)
+			transport, err := dns.CreateTransport(tag, ctx, logFactory.NewLogger(F.ToString("dns/transport[", tag, "]")), detour, server.Address)
 			if err != nil {
 				return nil, E.Cause(err, "parse dns server[", tag, "]")
 			}
@@ -263,7 +264,7 @@ func NewRouter(
 	}
 	if defaultTransport == nil {
 		if len(transports) == 0 {
-			transports = append(transports, dns.NewLocalTransport(N.SystemDialer))
+			transports = append(transports, dns.NewLocalTransport("local", N.SystemDialer))
 		}
 		defaultTransport = transports[0]
 	}
@@ -516,32 +517,62 @@ func (r *Router) Start() error {
 }
 
 func (r *Router) Close() error {
-	for _, rule := range r.rules {
-		err := rule.Close()
-		if err != nil {
-			return err
-		}
+	var err error
+	for i, rule := range r.rules {
+		r.logger.Trace("closing rule[", i, "]")
+		err = E.Append(err, rule.Close(), func(err error) error {
+			return E.Cause(err, "close rule[", i, "]")
+		})
 	}
-	for _, rule := range r.dnsRules {
-		err := rule.Close()
-		if err != nil {
-			return err
-		}
+	for i, rule := range r.dnsRules {
+		r.logger.Trace("closing dns rule[", i, "]")
+		err = E.Append(err, rule.Close(), func(err error) error {
+			return E.Cause(err, "close dns rule[", i, "]")
+		})
 	}
-	for _, transport := range r.transports {
-		err := transport.Close()
-		if err != nil {
-			return err
-		}
+	for i, transport := range r.transports {
+		r.logger.Trace("closing transport[", i, "] ")
+		err = E.Append(err, transport.Close(), func(err error) error {
+			return E.Cause(err, "close dns transport[", i, "]")
+		})
 	}
-	return common.Close(
-		common.PtrOrNil(r.geoIPReader),
-		r.interfaceMonitor,
-		r.networkMonitor,
-		r.packageManager,
-		r.timeService,
-		r.fakeIPStore,
-	)
+	if r.geositeReader != nil {
+		r.logger.Trace("closing geoip reader")
+		err = E.Append(err, common.Close(r.geoIPReader), func(err error) error {
+			return E.Cause(err, "close geoip reader")
+		})
+	}
+	if r.interfaceMonitor != nil {
+		r.logger.Trace("closing interface monitor")
+		err = E.Append(err, r.interfaceMonitor.Close(), func(err error) error {
+			return E.Cause(err, "close interface monitor")
+		})
+	}
+	if r.networkMonitor != nil {
+		r.logger.Trace("closing network monitor")
+		err = E.Append(err, r.networkMonitor.Close(), func(err error) error {
+			return E.Cause(err, "close network monitor")
+		})
+	}
+	if r.packageManager != nil {
+		r.logger.Trace("closing package manager")
+		err = E.Append(err, r.packageManager.Close(), func(err error) error {
+			return E.Cause(err, "close package manager")
+		})
+	}
+	if r.timeService != nil {
+		r.logger.Trace("closing time service")
+		err = E.Append(err, r.timeService.Close(), func(err error) error {
+			return E.Cause(err, "close time service")
+		})
+	}
+	if r.fakeIPStore != nil {
+		r.logger.Trace("closing fakeip store")
+		err = E.Append(err, r.fakeIPStore.Close(), func(err error) error {
+			return E.Cause(err, "close fakeip store")
+		})
+	}
+	return err
 }
 
 func (r *Router) Outbound(tag string) (adapter.Outbound, bool) {
@@ -668,9 +699,11 @@ func (r *Router) RouteConnection(ctx context.Context, conn net.Conn, metadata ad
 		metadata.DestinationAddresses = addresses
 		r.dnsLogger.DebugContext(ctx, "resolved [", strings.Join(F.MapToString(metadata.DestinationAddresses), " "), "]")
 	}
-	matchedRule, detour := r.match(ctx, &metadata, r.defaultOutboundForConnection)
+	ctx, matchedRule, detour, err := r.match(ctx, &metadata, r.defaultOutboundForConnection)
+	if err != nil {
+		return err
+	}
 	if !common.Contains(detour.Network(), N.NetworkTCP) {
-		conn.Close()
 		return E.New("missing supported outbound, closing connection")
 	}
 	if r.clashServer != nil {
@@ -768,9 +801,11 @@ func (r *Router) RoutePacketConnection(ctx context.Context, conn N.PacketConn, m
 		metadata.DestinationAddresses = addresses
 		r.dnsLogger.DebugContext(ctx, "resolved [", strings.Join(F.MapToString(metadata.DestinationAddresses), " "), "]")
 	}
-	matchedRule, detour := r.match(ctx, &metadata, r.defaultOutboundForPacketConnection)
+	ctx, matchedRule, detour, err := r.match(ctx, &metadata, r.defaultOutboundForPacketConnection)
+	if err != nil {
+		return err
+	}
 	if !common.Contains(detour.Network(), N.NetworkUDP) {
-		conn.Close()
 		return E.New("missing supported outbound, closing packet connection")
 	}
 	if r.clashServer != nil {
@@ -789,7 +824,18 @@ func (r *Router) RoutePacketConnection(ctx context.Context, conn N.PacketConn, m
 	return detour.NewPacketConnection(ctx, conn, metadata)
 }
 
-func (r *Router) match(ctx context.Context, metadata *adapter.InboundContext, defaultOutbound adapter.Outbound) (adapter.Rule, adapter.Outbound) {
+func (r *Router) match(ctx context.Context, metadata *adapter.InboundContext, defaultOutbound adapter.Outbound) (context.Context, adapter.Rule, adapter.Outbound, error) {
+	matchRule, matchOutbound := r.match0(ctx, metadata, defaultOutbound)
+	if contextOutbound, loaded := outbound.TagFromContext(ctx); loaded {
+		if contextOutbound == matchOutbound.Tag() {
+			return nil, nil, nil, E.New("connection loopback in outbound/", matchOutbound.Type(), "[", matchOutbound.Tag(), "]")
+		}
+	}
+	ctx = outbound.ContextWithTag(ctx, matchOutbound.Tag())
+	return ctx, matchRule, matchOutbound, nil
+}
+
+func (r *Router) match0(ctx context.Context, metadata *adapter.InboundContext, defaultOutbound adapter.Outbound) (adapter.Rule, adapter.Outbound) {
 	if r.processSearcher != nil {
 		var originDestination netip.AddrPort
 		if metadata.OriginDestination.IsValid() {
