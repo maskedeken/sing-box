@@ -2,10 +2,8 @@ package v2raygrpclite
 
 import (
 	"context"
-	"fmt"
 	"net"
 	"net/http"
-	"net/url"
 	"os"
 	"strings"
 	"time"
@@ -46,13 +44,16 @@ func NewServer(ctx context.Context, options option.V2RayGRPCOptions, tlsConfig t
 	server := &Server{
 		tlsConfig: tlsConfig,
 		handler:   handler,
-		path:      fmt.Sprintf("/%s/Tun", url.QueryEscape(options.ServiceName)),
+		path:      "/" + options.ServiceName + "/Tun",
 		h2Server: &http2.Server{
 			IdleTimeout: time.Duration(options.IdleTimeout),
 		},
 	}
 	server.httpServer = &http.Server{
 		Handler: server,
+		BaseContext: func(net.Listener) context.Context {
+			return ctx
+		},
 	}
 	server.h2cHandler = h2c.NewHandler(server, server.h2Server)
 	return server, nil
@@ -101,8 +102,8 @@ func (s *Server) fallbackRequest(ctx context.Context, writer http.ResponseWriter
 
 func (s *Server) Serve(listener net.Listener) error {
 	if s.tlsConfig != nil {
-		if len(s.tlsConfig.NextProtos()) == 0 {
-			s.tlsConfig.SetNextProtos([]string{http2.NextProtoTLS})
+		if !common.Contains(s.tlsConfig.NextProtos(), http2.NextProtoTLS) {
+			s.tlsConfig.SetNextProtos(append([]string{"h2"}, s.tlsConfig.NextProtos()...))
 		}
 		listener = aTLS.NewListener(listener, s.tlsConfig)
 	}

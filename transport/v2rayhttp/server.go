@@ -70,6 +70,9 @@ func NewServer(ctx context.Context, options option.V2RayHTTPOptions, tlsConfig t
 		Handler:           server,
 		ReadHeaderTimeout: C.TCPTimeout,
 		MaxHeaderBytes:    http.DefaultMaxHeaderBytes,
+		BaseContext: func(net.Listener) context.Context {
+			return ctx
+		},
 	}
 	server.h2cHandler = h2c.NewHandler(server, server.h2Server)
 	return server, nil
@@ -102,12 +105,20 @@ func (s *Server) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 		}
 	}
 
-	writer.WriteHeader(http.StatusOK)
-	writer.(http.Flusher).Flush()
-
 	var metadata M.Metadata
 	metadata.Source = sHttp.SourceAddress(request)
 	if h, ok := writer.(http.Hijacker); ok {
+		var requestBody *buf.Buffer
+		if contentLength := int(request.ContentLength); contentLength > 0 {
+			requestBody = buf.NewSize(contentLength)
+			_, err := requestBody.ReadFullFrom(request.Body, contentLength)
+			if err != nil {
+				s.fallbackRequest(request.Context(), writer, request, 0, E.Cause(err, "read request"))
+				return
+			}
+		}
+		writer.WriteHeader(http.StatusOK)
+		writer.(http.Flusher).Flush()
 		conn, reader, err := h.Hijack()
 		if err != nil {
 			s.fallbackRequest(request.Context(), writer, request, 0, E.Cause(err, "hijack conn"))
@@ -122,8 +133,12 @@ func (s *Server) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 			}
 			conn = bufio.NewCachedConn(conn, cache)
 		}
+		if requestBody != nil {
+			conn = bufio.NewCachedConn(conn, requestBody)
+		}
 		s.handler.NewConnection(request.Context(), conn, metadata)
 	} else {
+		writer.WriteHeader(http.StatusOK)
 		conn := NewHTTP2Wrapper(&ServerHTTPConn{
 			NewHTTPConn(request.Body, writer),
 			writer.(http.Flusher),
@@ -149,6 +164,11 @@ func (s *Server) fallbackRequest(ctx context.Context, writer http.ResponseWriter
 
 func (s *Server) Serve(listener net.Listener) error {
 	if s.tlsConfig != nil {
+		if len(s.tlsConfig.NextProtos()) == 0 {
+			s.tlsConfig.SetNextProtos([]string{http2.NextProtoTLS, "http/1.1"})
+		} else if !common.Contains(s.tlsConfig.NextProtos(), http2.NextProtoTLS) {
+			s.tlsConfig.SetNextProtos(append([]string{"h2"}, s.tlsConfig.NextProtos()...))
+		}
 		listener = aTLS.NewListener(listener, s.tlsConfig)
 	}
 	return s.httpServer.Serve(listener)
