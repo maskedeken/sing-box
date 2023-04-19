@@ -12,6 +12,7 @@ import (
 	"github.com/sagernet/sing-box/common/tls"
 	"github.com/sagernet/sing-box/option"
 	"github.com/sagernet/sing-box/transport/v2rayhttp"
+	E "github.com/sagernet/sing/common/exceptions"
 	M "github.com/sagernet/sing/common/metadata"
 	N "github.com/sagernet/sing/common/network"
 
@@ -93,9 +94,17 @@ func (c *Client) DialContext(ctx context.Context) (net.Conn, error) {
 	conn := newLateGunConn(pipeInWriter)
 	go func() {
 		response, err := c.transport.RoundTrip(request)
+
 		if err == nil {
-			conn.setup(response.Body, nil)
-		} else {
+			if response.StatusCode == http.StatusOK {
+				conn.setup(response.Body, nil)
+			} else {
+				err = E.New("http status code: ", response.StatusCode)
+				response.Body.Close()
+			}
+		}
+
+		if err != nil {
 			conn.setup(nil, err)
 		}
 	}()
