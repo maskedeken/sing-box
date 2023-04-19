@@ -30,6 +30,7 @@ type Client struct {
 	ctx        context.Context
 	dialer     N.Dialer
 	serverAddr M.Socksaddr
+	host       string
 	transport  *http2.Transport
 	options    option.V2RayGRPCOptions
 	url        *url.URL
@@ -62,6 +63,9 @@ func NewClient(ctx context.Context, dialer N.Dialer, serverAddr M.Socksaddr, opt
 		if len(tlsConfig.NextProtos()) == 0 {
 			tlsConfig.SetNextProtos([]string{http2.NextProtoTLS})
 		}
+		if sni := tlsConfig.ServerName(); sni != "" {
+			client.host = sni
+		}
 		client.transport.DialTLSContext = func(ctx context.Context, network, addr string, cfg *tls.STDConfig) (net.Conn, error) {
 			conn, err := dialer.DialContext(ctx, network, M.ParseSocksaddr(addr))
 			if err != nil {
@@ -81,6 +85,9 @@ func (c *Client) DialContext(ctx context.Context) (net.Conn, error) {
 		Body:   pipeInReader,
 		URL:    c.url,
 		Header: defaultClientHeader,
+	}
+	if c.host != "" {
+		request.Host = c.host
 	}
 	request = request.WithContext(ctx)
 	conn := newLateGunConn(pipeInWriter)
