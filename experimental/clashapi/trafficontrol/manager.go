@@ -19,15 +19,12 @@ type Manager struct {
 	connections compatible.Map[string, tracker]
 	ticker      *time.Ticker
 	done        chan struct{}
-	// process     *process.Process
-	memory uint64
 }
 
 func NewManager() *Manager {
 	manager := &Manager{
 		ticker: time.NewTicker(time.Second),
 		done:   make(chan struct{}),
-		// process: &process.Process{Pid: int32(os.Getpid())},
 	}
 	go manager.handle()
 	return manager

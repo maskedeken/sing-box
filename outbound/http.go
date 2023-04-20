@@ -50,8 +50,6 @@ func NewHTTP(router adapter.Router, logger log.ContextLogger, tag string, option
 			Server:   options.ServerOptions.Build(),
 			Username: options.Username,
 			Password: options.Password,
-			Path:     options.Path,
-			Headers:  headers,
 		}),
 	}, nil
 }
