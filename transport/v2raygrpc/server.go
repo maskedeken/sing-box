@@ -66,7 +66,7 @@ func (s *Server) Tun(server GunService_TunServer) error {
 			}
 		}
 	}
-	go s.handler.NewConnection(ctx, deadline.NewConn(conn), metadata)
+	go s.handler.NewConnection(ctx, conn, metadata)
 	<-ctx.Done()
 	return nil
 }
