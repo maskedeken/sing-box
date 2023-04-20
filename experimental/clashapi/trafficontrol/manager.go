@@ -1,7 +1,6 @@
 package trafficontrol
 
 import (
-	"runtime"
 	"time"
 
 	"github.com/sagernet/sing-box/experimental/clashapi/compatible"
@@ -59,18 +58,10 @@ func (m *Manager) Snapshot() *Snapshot {
 		return true
 	})
 
-	//if memoryInfo, err := m.process.MemoryInfo(); err == nil {
-	//	m.memory = memoryInfo.RSS
-	//} else {
-	var memStats runtime.MemStats
-	runtime.ReadMemStats(&memStats)
-	m.memory = memStats.StackInuse + memStats.HeapInuse + memStats.HeapIdle - memStats.HeapReleased
-
 	return &Snapshot{
 		UploadTotal:   m.uploadTotal.Load(),
 		DownloadTotal: m.downloadTotal.Load(),
 		Connections:   connections,
-		Memory:        m.memory,
 	}
 }
 
