@@ -27,7 +27,7 @@ type InjectableInbound interface {
 type InboundContext struct {
 	Inbound     string
 	InboundType string
-	IPVersion   uint8
+	IPVersion   int
 	Network     string
 	Source      M.Socksaddr
 	Destination M.Socksaddr

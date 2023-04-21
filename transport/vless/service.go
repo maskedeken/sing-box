@@ -10,13 +10,12 @@ import (
 	"github.com/sagernet/sing/common/auth"
 	"github.com/sagernet/sing/common/buf"
 	"github.com/sagernet/sing/common/bufio"
-	"github.com/sagernet/sing/common/bufio/deadline"
 	E "github.com/sagernet/sing/common/exceptions"
 	"github.com/sagernet/sing/common/logger"
 	M "github.com/sagernet/sing/common/metadata"
 	N "github.com/sagernet/sing/common/network"
 
-	"github.com/gofrs/uuid/v5"
+	"github.com/gofrs/uuid"
 )
 
 type Service[T comparable] struct {
@@ -107,7 +106,7 @@ func (s *Service[T]) NewConnection(ctx context.Context, conn net.Conn, metadata 
 	case vmess.CommandTCP:
 		return s.handler.NewConnection(ctx, &serverConn{Conn: conn, responseWriter: responseWriter}, metadata)
 	case vmess.CommandUDP:
-		return s.handler.NewPacketConnection(ctx, deadline.NewPacketConn(&serverPacketConn{ExtendedConn: bufio.NewExtendedConn(conn), destination: request.Destination}), metadata)
+		return s.handler.NewPacketConnection(ctx, &serverPacketConn{ExtendedConn: bufio.NewExtendedConn(conn), destination: request.Destination}, metadata)
 	case vmess.CommandMux:
 		return vmess.HandleMuxConnection(ctx, &serverConn{Conn: conn, responseWriter: responseWriter}, s.handler)
 	default:

@@ -38,9 +38,3 @@
 #### tag
 
 The tag of the outbound.
-
-### Features
-
-#### Outbounds that support IP connection
-
-* `WireGuard`

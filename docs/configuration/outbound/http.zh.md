@@ -11,8 +11,6 @@
   "server_port": 1080,
   "username": "sekai",
   "password": "admin",
-  "path": "",
-  "headers": {},
   "tls": {},
 
   ... // 拨号字段
@@ -40,14 +38,6 @@ Basic 认证用户名。
 #### password
 
 Basic 认证密码。
-
-#### path
-
-HTTP 请求路径。
-
-#### headers
-
-HTTP 请求的额外标头。
 
 #### tls
 

@@ -100,5 +100,4 @@ type Snapshot struct {
 	DownloadTotal int64     `json:"downloadTotal"`
 	UploadTotal   int64     `json:"uploadTotal"`
 	Connections   []tracker `json:"connections"`
-	Memory        uint64    `json:"memory"`
 }

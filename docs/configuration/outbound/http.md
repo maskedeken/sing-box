@@ -11,8 +11,6 @@
   "server_port": 1080,
   "username": "sekai",
   "password": "admin",
-  "path": "",
-  "headers": {},
   "tls": {},
   
   ... // Dial Fields
@@ -40,14 +38,6 @@ Basic authorization username.
 #### password
 
 Basic authorization password.
-
-#### path
-
-Path of HTTP request.
-
-#### headers
-
-Extra headers of HTTP request.
 
 #### tls
 

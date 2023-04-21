@@ -90,9 +90,6 @@ func (n *Naive) Start() error {
 		n.httpServer = &http.Server{
 			Handler:   n,
 			TLSConfig: tlsConfig,
-			BaseContext: func(listener net.Listener) context.Context {
-				return n.ctx
-			},
 		}
 		go func() {
 			var sErr error

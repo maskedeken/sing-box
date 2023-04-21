@@ -9,9 +9,7 @@
           "mixed-in"
         ],
         "ip_version": 6,
-        "network": [
-          "tcp"
-        ],
+        "network": "tcp",
         "auth_user": [
           "usera",
           "userb"
@@ -246,12 +244,18 @@ Tag of the target outbound.
 
 #### mode
 
-==Required==
-
 `and` or `or`
 
 #### rules
 
+Included default rules.
+
+#### invert
+
+Invert match result.
+
+#### outbound
+
 ==Required==
 
-Included default rules.
+Tag of the target outbound.

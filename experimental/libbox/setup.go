@@ -10,10 +10,6 @@ func SetBasePath(path string) {
 	C.SetBasePath(path)
 }
 
-func SetTempPath(path string) {
-	C.SetTempPath(path)
-}
-
 func Version() string {
 	return C.Version
 }

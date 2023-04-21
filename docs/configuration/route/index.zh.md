@@ -7,7 +7,6 @@
   "route": {
     "geoip": {},
     "geosite": {},
-    "ip_rules": [],
     "rules": [],
     "final": "",
     "auto_detect_interface": false,
@@ -20,12 +19,11 @@
 
 ### 字段
 
-| 键          | 格式                      |
-|------------|-------------------------|
-| `geoip`    | [GeoIP](./geoip)        |
-| `geosite`  | [GeoSite](./geosite)    |
-| `ip_rules` | 一组 [IP 路由规则](./ip-rule) |
-| `rules`    | 一组 [路由规则](./rule)       |
+| 键         | 格式                   |
+|-----------|----------------------|
+| `geoip`   | [GeoIP](./geoip)     |
+| `geosite` | [GeoSite](./geosite) |
+| `rules`   | 一组 [路由规则](./rule)    |
 
 #### final
 

@@ -13,7 +13,6 @@ type ClashServer interface {
 	PreStarter
 	Mode() string
 	StoreSelected() bool
-	StoreFakeIP() bool
 	CacheFile() ClashCacheFile
 	HistoryStorage() *urltest.HistoryStorage
 	RoutedConnection(ctx context.Context, conn net.Conn, metadata InboundContext, matchedRule Rule) (net.Conn, Tracker)
@@ -23,7 +22,6 @@ type ClashServer interface {
 type ClashCacheFile interface {
 	LoadSelected(group string) string
 	StoreSelected(group string, selected string) error
-	FakeIPStorage
 }
 
 type Tracker interface {
@@ -33,11 +31,6 @@ type Tracker interface {
 type OutboundGroup interface {
 	Now() string
 	All() []string
-}
-
-type URLTestGroup interface {
-	OutboundGroup
-	URLTest(ctx context.Context, url string) (map[string]uint16, error)
 }
 
 func OutboundTag(detour Outbound) string {
