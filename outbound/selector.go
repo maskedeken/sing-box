@@ -7,6 +7,7 @@ import (
 	"github.com/sagernet/sing-box/adapter"
 	C "github.com/sagernet/sing-box/constant"
 	"github.com/sagernet/sing-box/log"
+	"github.com/sagernet/sing-box/nekoutils"
 	"github.com/sagernet/sing-box/option"
 	E "github.com/sagernet/sing/common/exceptions"
 	M "github.com/sagernet/sing/common/metadata"
@@ -108,6 +109,9 @@ func (s *Selector) SelectOutbound(tag string) bool {
 				s.logger.Error("store selected: ", err)
 			}
 		}
+	}
+	if nekoutils.Selector_OnProxySelected != nil {
+		nekoutils.Selector_OnProxySelected(s.tag, tag)
 	}
 	return true
 }
