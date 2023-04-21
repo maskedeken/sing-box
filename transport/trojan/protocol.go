@@ -22,8 +22,6 @@ const (
 	CommandTCP = 1
 	CommandUDP = 3
 	CommandMux = 0x7f
-
-	UDP_CONN = "UDP_CONN"
 )
 
 var CRLF = []byte{'\r', '\n'}

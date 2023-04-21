@@ -27,7 +27,6 @@ import (
 	"github.com/sagernet/sing-box/ntp"
 	"github.com/sagernet/sing-box/option"
 	"github.com/sagernet/sing-box/outbound"
-	"github.com/sagernet/sing-box/transport/trojan"
 	dns "github.com/sagernet/sing-dns"
 	tun "github.com/sagernet/sing-tun"
 	vmess "github.com/sagernet/sing-vmess"
@@ -710,7 +709,7 @@ func (r *Router) RoutePacketConnection(ctx context.Context, conn N.PacketConn, m
 		return nil
 	}
 	metadata.Network = N.NetworkUDP
-	if metadata.InboundOptions.SniffEnabled || metadata.Destination.Fqdn == trojan.UDP_CONN {
+	if metadata.InboundOptions.SniffEnabled {
 		buffer := buf.NewPacket()
 		buffer.FullReset()
 		destination, err := conn.ReadPacket(buffer)
@@ -718,31 +717,22 @@ func (r *Router) RoutePacketConnection(ctx context.Context, conn N.PacketConn, m
 			buffer.Release()
 			return err
 		}
-
-		if metadata.Destination.Fqdn == trojan.UDP_CONN {
-			metadata.Domain = metadata.Destination.Fqdn
-			metadata.Destination = destination
-		}
-
-		if metadata.InboundOptions.SniffEnabled {
-			sniffMetadata, _ := sniff.PeekPacket(ctx, buffer.Bytes(), sniff.DomainNameQuery, sniff.QUICClientHello, sniff.STUNMessage)
-			if sniffMetadata != nil {
-				metadata.Protocol = sniffMetadata.Protocol
-				metadata.Domain = sniffMetadata.Domain
-				if metadata.InboundOptions.SniffOverrideDestination && M.IsDomainName(metadata.Domain) {
-					metadata.Destination = M.Socksaddr{
-						Fqdn: metadata.Domain,
-						Port: metadata.Destination.Port,
-					}
-				}
-				if metadata.Domain != "" {
-					r.logger.DebugContext(ctx, "sniffed packet protocol: ", metadata.Protocol, ", domain: ", metadata.Domain)
-				} else {
-					r.logger.DebugContext(ctx, "sniffed packet protocol: ", metadata.Protocol)
+		sniffMetadata, _ := sniff.PeekPacket(ctx, buffer.Bytes(), sniff.DomainNameQuery, sniff.QUICClientHello, sniff.STUNMessage)
+		if sniffMetadata != nil {
+			metadata.Protocol = sniffMetadata.Protocol
+			metadata.Domain = sniffMetadata.Domain
+			if metadata.InboundOptions.SniffOverrideDestination && M.IsDomainName(metadata.Domain) {
+				metadata.Destination = M.Socksaddr{
+					Fqdn: metadata.Domain,
+					Port: metadata.Destination.Port,
 				}
 			}
+			if metadata.Domain != "" {
+				r.logger.DebugContext(ctx, "sniffed packet protocol: ", metadata.Protocol, ", domain: ", metadata.Domain)
+			} else {
+				r.logger.DebugContext(ctx, "sniffed packet protocol: ", metadata.Protocol)
+			}
 		}
-
 		conn = bufio.NewCachedPacketConn(conn, buffer, destination)
 	}
 	if metadata.Destination.IsFqdn() && dns.DomainStrategy(metadata.InboundOptions.DomainStrategy) != dns.DomainStrategyAsIS {

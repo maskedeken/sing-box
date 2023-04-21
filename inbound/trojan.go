@@ -14,6 +14,8 @@ import (
 	"github.com/sagernet/sing-box/transport/v2ray"
 	"github.com/sagernet/sing/common"
 	"github.com/sagernet/sing/common/auth"
+	"github.com/sagernet/sing/common/buf"
+	"github.com/sagernet/sing/common/bufio"
 	E "github.com/sagernet/sing/common/exceptions"
 	F "github.com/sagernet/sing/common/format"
 	M "github.com/sagernet/sing/common/metadata"
@@ -213,6 +215,16 @@ func (h *Trojan) newPacketConnection(ctx context.Context, conn N.PacketConn, met
 	} else {
 		metadata.User = user
 	}
+
+	buffer := buf.NewPacket()
+	buffer.FullReset()
+	destination, err := conn.ReadPacket(buffer)
+	if err != nil {
+		buffer.Release()
+		return err
+	}
+	conn = bufio.NewCachedPacketConn(conn, buffer, destination)
+	metadata.Destination = destination
 	h.logger.InfoContext(ctx, "[", user, "] inbound packet connection to ", metadata.Destination)
 	return h.router.RoutePacketConnection(ctx, conn, metadata)
 }
