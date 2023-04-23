@@ -65,7 +65,7 @@ func NewClient(ctx context.Context, dialer N.Dialer, serverAddr M.Socksaddr, opt
 			tlsConfig.SetNextProtos([]string{http2.NextProtoTLS})
 		}
 		if sni := tlsConfig.ServerName(); sni != "" {
-			client.host = sni
+			client.host = M.ParseSocksaddrHostPort(sni, serverAddr.Port).String()
 		}
 		client.transport.DialTLSContext = func(ctx context.Context, network, addr string, cfg *tls.STDConfig) (net.Conn, error) {
 			conn, err := dialer.DialContext(ctx, network, M.ParseSocksaddr(addr))
@@ -86,9 +86,7 @@ func (c *Client) DialContext(ctx context.Context) (net.Conn, error) {
 		Body:   pipeInReader,
 		URL:    c.url,
 		Header: defaultClientHeader,
-	}
-	if c.host != "" {
-		request.Host = c.host
+		Host:   c.host,
 	}
 	request = request.WithContext(ctx)
 	conn := newLateGunConn(pipeInWriter)
