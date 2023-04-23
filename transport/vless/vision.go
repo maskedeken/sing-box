@@ -365,6 +365,10 @@ func (c *VisionConn) unPadding(buffer []byte) [][]byte {
 	return buffers
 }
 
+func (c *VisionConn) NeedAdditionalReadDeadline() bool {
+	return true
+}
+
 func (c *VisionConn) Upstream() any {
 	return c.Conn
 }

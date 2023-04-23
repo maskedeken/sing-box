@@ -90,6 +90,9 @@ func (n *Naive) Start() error {
 		n.httpServer = &http.Server{
 			Handler:   n,
 			TLSConfig: tlsConfig,
+			BaseContext: func(listener net.Listener) context.Context {
+				return n.ctx
+			},
 		}
 		go func() {
 			var sErr error
@@ -604,6 +607,10 @@ func (c *naiveH2Conn) SetReadDeadline(t time.Time) error {
 
 func (c *naiveH2Conn) SetWriteDeadline(t time.Time) error {
 	return os.ErrInvalid
+}
+
+func (c *naiveH2Conn) NeedAdditionalReadDeadline() bool {
+	return true
 }
 
 func (c *naiveH2Conn) UpstreamReader() any {

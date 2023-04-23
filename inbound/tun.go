@@ -148,7 +148,7 @@ func (t *Tun) Start() error {
 		err          error
 	)
 	if t.platformInterface != nil {
-		tunInterface, err = t.platformInterface.OpenTun(t.tunOptions, t.platformOptions)
+		tunInterface, err = t.platformInterface.OpenTun(&t.tunOptions, t.platformOptions)
 	} else {
 		tunInterface, err = tun.New(t.tunOptions)
 	}
@@ -167,7 +167,7 @@ func (t *Tun) Start() error {
 		UDPTimeout:             t.udpTimeout,
 		Handler:                t,
 		Logger:                 t.logger,
-		UnderPlatform:          t.platformInterface != nil,
+		ForwarderBindInterface: t.platformInterface != nil,
 	})
 	if err != nil {
 		return err

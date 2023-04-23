@@ -140,14 +140,14 @@ func NewHTTPConn(reader io.Reader, writer io.Writer) HTTP2Conn {
 	}
 }
 
-func newLateHTTPConn(writer io.Writer) *HTTP2Conn {
+func NewLateHTTPConn(writer io.Writer) *HTTP2Conn {
 	return &HTTP2Conn{
 		create: make(chan struct{}),
 		writer: writer,
 	}
 }
 
-func (c *HTTP2Conn) setup(reader io.Reader, err error) {
+func (c *HTTP2Conn) Setup(reader io.Reader, err error) {
 	c.reader = reader
 	c.err = err
 	close(c.create)
@@ -182,30 +182,19 @@ func (c *HTTP2Conn) RemoteAddr() net.Addr {
 }
 
 func (c *HTTP2Conn) SetDeadline(t time.Time) error {
-	if responseWriter, loaded := c.writer.(interface {
-		SetWriteDeadline(time.Time) error
-	}); loaded {
-		return responseWriter.SetWriteDeadline(t)
-	}
 	return os.ErrInvalid
 }
 
 func (c *HTTP2Conn) SetReadDeadline(t time.Time) error {
-	if responseWriter, loaded := c.writer.(interface {
-		SetReadDeadline(time.Time) error
-	}); loaded {
-		return responseWriter.SetReadDeadline(t)
-	}
 	return os.ErrInvalid
 }
 
 func (c *HTTP2Conn) SetWriteDeadline(t time.Time) error {
-	if responseWriter, loaded := c.writer.(interface {
-		SetWriteDeadline(time.Time) error
-	}); loaded {
-		return responseWriter.SetWriteDeadline(t)
-	}
 	return os.ErrInvalid
+}
+
+func (c *HTTP2Conn) NeedAdditionalReadDeadline() bool {
+	return true
 }
 
 type ServerHTTPConn struct {

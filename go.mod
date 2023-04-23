@@ -12,7 +12,6 @@ require (
 	github.com/go-chi/chi/v5 v5.0.8
 	github.com/go-chi/cors v1.2.1
 	github.com/go-chi/render v1.0.2
-	github.com/gofrs/uuid v4.4.0+incompatible
 	github.com/gofrs/uuid/v5 v5.0.0
 	github.com/hashicorp/yamux v0.1.1
 	github.com/insomniacslk/dhcp v0.0.0-20230407062729-974c6f05fe16
@@ -26,12 +25,12 @@ require (
 	github.com/sagernet/gomobile v0.0.0-20230413023804-244d7ff07035
 	github.com/sagernet/quic-go v0.0.0-20230202071646-a8c8afb18b32
 	github.com/sagernet/reality v0.0.0-20230406110435-ee17307e7691
-	github.com/sagernet/sing v0.2.3
+	github.com/sagernet/sing v0.2.4
 	github.com/sagernet/sing-dns v0.1.5-0.20230415085626-111ecf799dfc
-	github.com/sagernet/sing-shadowsocks v0.2.0
-	github.com/sagernet/sing-shadowtls v0.1.0
-	github.com/sagernet/sing-tun v0.1.4-0.20230326080954-8848c0e4cbab
-	github.com/sagernet/sing-vmess v0.1.3
+	github.com/sagernet/sing-shadowsocks v0.2.2-0.20230417102954-f77257340507
+	github.com/sagernet/sing-shadowtls v0.1.2-0.20230417103049-4f682e05f19b
+	github.com/sagernet/sing-tun v0.1.4
+	github.com/sagernet/sing-vmess v0.1.5-0.20230417103030-8c3070ae3fb3
 	github.com/sagernet/smux v0.0.0-20230312102458-337ec2a5af37
 	github.com/sagernet/tfo-go v0.0.0-20230303015439-ffcfd8c41cf9
 	github.com/sagernet/utls v0.0.0-20230309024959-6732c2ab36f2
@@ -53,7 +52,7 @@ require (
 )
 
 //replace github.com/sagernet/sing => ../sing
-replace github.com/sagernet/sing-shadowtls => github.com/maskedeken/sing-shadowtls v0.0.0-20230330031754-5999b4e68855
+replace github.com/sagernet/sing-shadowtls => github.com/maskedeken/sing-shadowtls v0.0.0-20230423073728-ea2eb564e410
 
 require (
 	github.com/ajg/form v1.5.1 // indirect
