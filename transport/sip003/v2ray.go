@@ -10,7 +10,7 @@ import (
 	C "github.com/sagernet/sing-box/constant"
 	"github.com/sagernet/sing-box/option"
 	"github.com/sagernet/sing-box/transport/v2ray"
-	"github.com/sagernet/sing-vmess"
+	vmess "github.com/sagernet/sing-vmess"
 	E "github.com/sagernet/sing/common/exceptions"
 	M "github.com/sagernet/sing/common/metadata"
 	N "github.com/sagernet/sing/common/network"
@@ -45,6 +45,7 @@ func newV2RayPlugin(pluginOpts Args, router adapter.Router, dialer N.Dialer, ser
 
 	if hostOpt, loaded := pluginOpts.Get("host"); loaded {
 		host = hostOpt
+		tlsOptions.ServerName = host // https://github.com/shadowsocks/v2ray-plugin/blob/ddd7ab46b4aeee0ca8b272efed9d7da3e3a6e52c/main.go#L166
 	}
 	if pathOpt, loaded := pluginOpts.Get("path"); loaded {
 		path = pathOpt
