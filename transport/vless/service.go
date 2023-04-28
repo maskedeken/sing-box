@@ -15,7 +15,7 @@ import (
 	M "github.com/sagernet/sing/common/metadata"
 	N "github.com/sagernet/sing/common/network"
 
-	"github.com/gofrs/uuid"
+	"github.com/gofrs/uuid/v5"
 )
 
 type Service[T comparable] struct {
@@ -157,6 +157,14 @@ func (c *serverConn) Write(b []byte) (n int, err error) {
 		}
 	}
 	return c.Conn.Write(b)
+}
+
+func (c *serverConn) NeedAdditionalReadDeadline() bool {
+	return true
+}
+
+func (c *serverConn) Upstream() any {
+	return c.Conn
 }
 
 type serverPacketConn struct {

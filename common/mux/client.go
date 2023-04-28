@@ -250,6 +250,10 @@ func (c *ClientConn) WriterReplaceable() bool {
 	return c.requestWrite
 }
 
+func (c *ClientConn) NeedAdditionalReadDeadline() bool {
+	return true
+}
+
 func (c *ClientConn) Upstream() any {
 	return c.Conn
 }
@@ -376,6 +380,10 @@ func (c *ClientPacketConn) LocalAddr() net.Addr {
 
 func (c *ClientPacketConn) RemoteAddr() net.Addr {
 	return c.destination.UDPAddr()
+}
+
+func (c *ClientPacketConn) NeedAdditionalReadDeadline() bool {
+	return true
 }
 
 func (c *ClientPacketConn) Upstream() any {
@@ -517,6 +525,10 @@ func (c *ClientPacketAddrConn) LocalAddr() net.Addr {
 
 func (c *ClientPacketAddrConn) FrontHeadroom() int {
 	return 2 + M.MaxSocksaddrLength
+}
+
+func (c *ClientPacketAddrConn) NeedAdditionalReadDeadline() bool {
+	return true
 }
 
 func (c *ClientPacketAddrConn) Upstream() any {

@@ -110,7 +110,7 @@ func (s *Selector) SelectOutbound(tag string) bool {
 		}
 	}
 	if nekoutils.Selector_OnProxySelected != nil {
-		nekoutils.Selector_OnProxySelected(tag)
+		nekoutils.Selector_OnProxySelected(s.tag, tag)
 	}
 	return true
 }

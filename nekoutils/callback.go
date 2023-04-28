@@ -1,3 +1,3 @@
 package nekoutils
 
-var Selector_OnProxySelected func(tag string)
+var Selector_OnProxySelected func(selectorTag string, tag string)
