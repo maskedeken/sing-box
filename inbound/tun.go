@@ -11,7 +11,7 @@ import (
 	"github.com/sagernet/sing-box/experimental/libbox/platform"
 	"github.com/sagernet/sing-box/log"
 	"github.com/sagernet/sing-box/option"
-	"github.com/sagernet/sing-tun"
+	tun "github.com/sagernet/sing-tun"
 	"github.com/sagernet/sing/common"
 	E "github.com/sagernet/sing/common/exceptions"
 	M "github.com/sagernet/sing/common/metadata"
@@ -167,7 +167,7 @@ func (t *Tun) Start() error {
 		UDPTimeout:             t.udpTimeout,
 		Handler:                t,
 		Logger:                 t.logger,
-		UnderPlatform:          t.platformInterface != nil,
+		ForwarderBindInterface: t.platformInterface != nil,
 	})
 	if err != nil {
 		return err
