@@ -53,6 +53,9 @@ require (
 )
 
 //replace github.com/sagernet/sing => ../sing
+replace github.com/sagernet/sing-shadowtls => github.com/maskedeken/sing-shadowtls v0.0.0-20230424095609-b223c08c678d
+
+replace github.com/sagernet/sing-mux => github.com/maskedeken/sing-mux v0.0.0-20230522094046-3e94dbebe25f
 
 require (
 	github.com/ajg/form v1.5.1 // indirect
