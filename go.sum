@@ -72,6 +72,8 @@ github.com/libdns/libdns v0.2.1 h1:Wu59T7wSHRgtA0cfxC+n1c/e+O3upJGWytknkmFEDis=
 github.com/libdns/libdns v0.2.1/go.mod h1:yQCXzk1lEZmmCPa857bnk4TsOiqYasqpyOEeSObbb40=
 github.com/logrusorgru/aurora v2.0.3+incompatible h1:tOpm7WcpBTn4fjmVfgpQq0EfczGlG91VSDkswnjF5A8=
 github.com/logrusorgru/aurora v2.0.3+incompatible/go.mod h1:7rIyQOR62GCctdiQpZ/zOJlFyk6y+94wXzv6RNZgaR4=
+github.com/maskedeken/sing-shadowsocks2 v0.0.0-20230726015450-b26a35762980 h1:oUugEoRz5r+fk1K9tS+eNsqwm7OJDwj8aorOzuuWzRk=
+github.com/maskedeken/sing-shadowsocks2 v0.0.0-20230726015450-b26a35762980/go.mod h1:DOhJc/cLeqRv0wuePrQso+iUmDxOnWF4eT/oMcRzYFw=
 github.com/mholt/acmez v1.2.0 h1:1hhLxSgY5FvH5HCnGUuwbKY2VQVo8IU7rxXKSnZ7F30=
 github.com/mholt/acmez v1.2.0/go.mod h1:VT9YwH1xgNX1kmYY89gY8xPJC84BFAisjo8Egigt4kE=
 github.com/miekg/dns v1.1.55 h1:GoQ4hpsj0nFLYe+bWiCToyrBEJXkQfOOIvFGFy0lEgo=
@@ -124,8 +126,6 @@ github.com/sagernet/sing-mux v0.1.3-0.20230803070305-ea4a972acd21 h1:IQ7oBBKz+lw
 github.com/sagernet/sing-mux v0.1.3-0.20230803070305-ea4a972acd21/go.mod h1:TKxqIvfQQgd36jp2tzsPavGjYTVZilV+atip1cssjIY=
 github.com/sagernet/sing-shadowsocks v0.2.4 h1:s/CqXlvFAZhlIoHWUwPw5CoNnQ9Ibki9pckjuugtVfY=
 github.com/sagernet/sing-shadowsocks v0.2.4/go.mod h1:80fNKP0wnqlu85GZXV1H1vDPC/2t+dQbFggOw4XuFUM=
-github.com/sagernet/sing-shadowsocks2 v0.1.3 h1:WXoLvCFi5JTFBRYorf1YePGYIQyJ/zbsBM6Fwbl5kGA=
-github.com/sagernet/sing-shadowsocks2 v0.1.3/go.mod h1:DOhJc/cLeqRv0wuePrQso+iUmDxOnWF4eT/oMcRzYFw=
 github.com/sagernet/sing-shadowtls v0.1.4 h1:aTgBSJEgnumzFenPvc+kbD9/W0PywzWevnVpEx6Tw3k=
 github.com/sagernet/sing-shadowtls v0.1.4/go.mod h1:F8NBgsY5YN2beQavdgdm1DPlhaKQlaL6lpDdcBglGK4=
 github.com/sagernet/sing-tun v0.1.12-0.20230808064040-326c20ab22af h1:gC2vTbt2wrfPv3P33fLIrtM6YUt1w7muRrMk62g6Ykk=

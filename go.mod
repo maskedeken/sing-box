@@ -54,6 +54,8 @@ require (
 
 //replace github.com/sagernet/sing => ../sing
 
+replace github.com/sagernet/sing-shadowsocks2 => github.com/maskedeken/sing-shadowsocks2 v0.0.0-20230726015450-b26a35762980
+
 require (
 	github.com/Dreamacro/protobytes v0.0.0-20230617041236-6500a9f4f158 // indirect
 	github.com/ajg/form v1.5.1 // indirect
