@@ -57,6 +57,8 @@ replace github.com/sagernet/sing-shadowtls => github.com/maskedeken/sing-shadowt
 
 replace github.com/sagernet/sing-mux => github.com/maskedeken/sing-mux v0.0.0-20230523030649-1fdea7459a3f
 
+replace github.com/sagernet/sing-shadowsocks2 => github.com/maskedeken/sing-shadowsocks2 v0.0.0-20230523091925-24e999478890
+
 require (
 	github.com/ajg/form v1.5.1 // indirect
 	github.com/andybalholm/brotli v1.0.5 // indirect
