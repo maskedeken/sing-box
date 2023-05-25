@@ -2,9 +2,11 @@ package option
 
 type VLESSInboundOptions struct {
 	ListenOptions
-	Users     []VLESSUser            `json:"users,omitempty"`
-	TLS       *InboundTLSOptions     `json:"tls,omitempty"`
-	Transport *V2RayTransportOptions `json:"transport,omitempty"`
+	Users           []VLESSUser               `json:"users,omitempty"`
+	TLS             *InboundTLSOptions        `json:"tls,omitempty"`
+	Fallback        *ServerOptions            `json:"fallback,omitempty"`
+	FallbackForALPN map[string]*ServerOptions `json:"fallback_for_alpn,omitempty"`
+	Transport       *V2RayTransportOptions    `json:"transport,omitempty"`
 }
 
 type VLESSUser struct {

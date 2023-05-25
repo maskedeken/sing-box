@@ -68,8 +68,13 @@ func NewVisionConn(conn net.Conn, tlsConn net.Conn, userUUID [16]byte, logger lo
 		reflectPointer uintptr
 		netConn        net.Conn
 	)
+
+	conn1 := tlsConn
+	if cacheConn, ok := tlsConn.(*bufio.CachedConn); ok {
+		conn1 = cacheConn.Conn
+	}
 	for _, tlsCreator := range tlsRegistry {
-		loaded, netConn, reflectType, reflectPointer = tlsCreator(tlsConn)
+		loaded, netConn, reflectType, reflectPointer = tlsCreator(conn1)
 		if loaded {
 			break
 		}

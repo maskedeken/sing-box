@@ -6,7 +6,7 @@ import (
 	"io"
 	"net"
 
-	"github.com/sagernet/sing-vmess"
+	vmess "github.com/sagernet/sing-vmess"
 	"github.com/sagernet/sing/common/auth"
 	"github.com/sagernet/sing/common/buf"
 	"github.com/sagernet/sing/common/bufio"
@@ -19,10 +19,11 @@ import (
 )
 
 type Service[T comparable] struct {
-	userMap  map[[16]byte]T
-	userFlow map[T]string
-	logger   logger.Logger
-	handler  Handler
+	userMap         map[[16]byte]T
+	userFlow        map[T]string
+	logger          logger.Logger
+	handler         Handler
+	fallbackHandler N.TCPConnectionHandler
 }
 
 type Handler interface {
@@ -31,10 +32,11 @@ type Handler interface {
 	E.Handler
 }
 
-func NewService[T comparable](logger logger.Logger, handler Handler) *Service[T] {
+func NewService[T comparable](logger logger.Logger, handler Handler, fallbackHandler N.TCPConnectionHandler) *Service[T] {
 	return &Service[T]{
-		logger:  logger,
-		handler: handler,
+		logger:          logger,
+		handler:         handler,
+		fallbackHandler: fallbackHandler,
 	}
 }
 
@@ -56,13 +58,25 @@ func (s *Service[T]) UpdateUsers(userList []T, userUUIDList []string, userFlowLi
 var _ N.TCPConnectionHandler = (*Service[int])(nil)
 
 func (s *Service[T]) NewConnection(ctx context.Context, conn net.Conn, metadata M.Metadata) error {
-	request, err := ReadRequest(conn)
+	buffer := buf.NewSize(8192)
+	defer buffer.Release()
+
+	firstLen, err := buffer.ReadOnceFrom(conn)
 	if err != nil {
 		return err
 	}
+	header := buffer.Bytes()
+	if firstLen < 18 {
+		return s.fallback(ctx, conn, metadata, header, E.New("bad request size"))
+	}
+
+	request, err := ReadRequest(buffer)
+	if err != nil {
+		return s.fallback(ctx, conn, metadata, header, err)
+	}
 	user, loaded := s.userMap[request.UUID]
 	if !loaded {
-		return E.New("unknown UUID: ", uuid.FromBytesOrNil(request.UUID[:]))
+		return s.fallback(ctx, conn, metadata, header, E.New("unknown UUID: ", uuid.FromBytesOrNil(request.UUID[:])))
 	}
 	ctx = auth.ContextWithUser(ctx, user)
 	metadata.Destination = request.Destination
@@ -72,6 +86,10 @@ func (s *Service[T]) NewConnection(ctx context.Context, conn net.Conn, metadata 
 		return E.New(FlowVision, " flow does not support UDP")
 	} else if request.Flow != userFlow {
 		return E.New("flow mismatch: expected ", flowName(userFlow), ", but got ", flowName(request.Flow))
+	}
+
+	if buffer.Len() > 0 {
+		conn = bufio.NewCachedConn(conn, buffer.ToOwned())
 	}
 
 	if request.Command == vmess.CommandUDP {
@@ -97,6 +115,14 @@ func (s *Service[T]) NewConnection(ctx context.Context, conn net.Conn, metadata 
 	default:
 		return E.New("unknown command: ", request.Command)
 	}
+}
+
+func (s *Service[T]) fallback(ctx context.Context, conn net.Conn, metadata M.Metadata, header []byte, err error) error {
+	if s.fallbackHandler == nil {
+		return E.Extend(err, "fallback disabled")
+	}
+	conn = bufio.NewCachedConn(conn, buf.As(header).ToOwned())
+	return s.fallbackHandler.NewConnection(ctx, conn, metadata)
 }
 
 func flowName(value string) string {
