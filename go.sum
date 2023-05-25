@@ -68,6 +68,8 @@ github.com/libdns/libdns v0.2.1 h1:Wu59T7wSHRgtA0cfxC+n1c/e+O3upJGWytknkmFEDis=
 github.com/libdns/libdns v0.2.1/go.mod h1:yQCXzk1lEZmmCPa857bnk4TsOiqYasqpyOEeSObbb40=
 github.com/logrusorgru/aurora v2.0.3+incompatible h1:tOpm7WcpBTn4fjmVfgpQq0EfczGlG91VSDkswnjF5A8=
 github.com/logrusorgru/aurora v2.0.3+incompatible/go.mod h1:7rIyQOR62GCctdiQpZ/zOJlFyk6y+94wXzv6RNZgaR4=
+github.com/maskedeken/sing-shadowtls v0.0.0-20230424095609-b223c08c678d h1:PQi2/o2O4CPIG2o4148zZUOBJ1pxyhZGAdK24zJoScg=
+github.com/maskedeken/sing-shadowtls v0.0.0-20230424095609-b223c08c678d/go.mod h1:oG8bPerYI6cZ74KquY3DvA7ynECyrILPBnce6wtBqeI=
 github.com/mholt/acmez v1.1.0 h1:IQ9CGHKOHokorxnffsqDvmmE30mDenO1lptYZ1AYkHY=
 github.com/mholt/acmez v1.1.0/go.mod h1:zwo5+fbLLTowAX8o8ETfQzbDtwGEXnPhkmGdKIP+bgs=
 github.com/miekg/dns v1.1.54 h1:5jon9mWcb0sFJGpnI99tOMhCPyJ+RPVz5b63MQG0VWI=
@@ -121,8 +123,6 @@ github.com/sagernet/sing-shadowsocks v0.2.2-0.20230509053848-d83f8fe1194c h1:EiQ
 github.com/sagernet/sing-shadowsocks v0.2.2-0.20230509053848-d83f8fe1194c/go.mod h1:UJjvQGw0lyYaDGIDvUraL16fwaAEH1WFw1Y6sUcMPog=
 github.com/sagernet/sing-shadowsocks2 v0.0.0-20230512030659-23bb92c1eb97 h1:Mc5dbIMFF3ph3JofkBv3loq1qdBLktER+LL0IpoLm5M=
 github.com/sagernet/sing-shadowsocks2 v0.0.0-20230512030659-23bb92c1eb97/go.mod h1:i6Eoor37Cy4JKBcelMMFfUVBNjqRYuvcqOBjUI3Zw80=
-github.com/sagernet/sing-shadowtls v0.1.2-0.20230417103049-4f682e05f19b h1:ouW/6IDCrxkBe19YSbdCd7buHix7b+UZ6BM4Zz74XF4=
-github.com/sagernet/sing-shadowtls v0.1.2-0.20230417103049-4f682e05f19b/go.mod h1:oG8bPerYI6cZ74KquY3DvA7ynECyrILPBnce6wtBqeI=
 github.com/sagernet/sing-tun v0.1.5-0.20230509102026-91df97aee204 h1:V8eGGmvyjRtFDNmarASZGsTyyXz/gc/zStSxW/knc9E=
 github.com/sagernet/sing-tun v0.1.5-0.20230509102026-91df97aee204/go.mod h1:DD7Ce2Gt0GFc6I/1+Uw4D/aUlBsGqrQsC52CMK/V818=
 github.com/sagernet/sing-vmess v0.1.5-0.20230417103030-8c3070ae3fb3 h1:BHOnxrbC929JonuKqFdJ7ZbDp7zs4oTlH5KFvKtWu9U=
