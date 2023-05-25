@@ -117,7 +117,7 @@ func (s *Service[K]) fallback(ctx context.Context, conn net.Conn, metadata M.Met
 	if s.fallbackHandler == nil {
 		return E.Extend(err, "fallback disabled")
 	}
-	conn = bufio.NewCachedConn(conn, buf.As(header).ToOwned())
+	conn = bufio.NewCachedConn(conn, buf.As(header))
 	return s.fallbackHandler.NewConnection(ctx, conn, metadata)
 }
 
