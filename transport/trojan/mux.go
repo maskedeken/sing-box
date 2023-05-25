@@ -4,6 +4,8 @@ import (
 	"context"
 	"net"
 
+	"github.com/sagernet/sing-box/adapter"
+	"github.com/sagernet/sing/common/auth"
 	E "github.com/sagernet/sing/common/exceptions"
 	M "github.com/sagernet/sing/common/metadata"
 	"github.com/sagernet/sing/common/rw"
@@ -16,15 +18,19 @@ func HandleMuxConnection(ctx context.Context, conn net.Conn, metadata M.Metadata
 	if err != nil {
 		return err
 	}
+	inboundCtx := adapter.ContextFrom(ctx)
+	user, _ := auth.UserFromContext[int](ctx)
 	var group task.Group
-	group.Append0(func(ctx context.Context) error {
+	group.Append0(func(newCtx context.Context) error {
 		var stream net.Conn
 		for {
 			stream, err = session.AcceptStream()
 			if err != nil {
 				return err
 			}
-			go newMuxConnection(ctx, stream, metadata, handler)
+			newCtx = adapter.WithContext(newCtx, inboundCtx)
+			newCtx = auth.ContextWithUser(newCtx, user)
+			go newMuxConnection(newCtx, stream, metadata, handler)
 		}
 	})
 	group.Cleanup(func() {
