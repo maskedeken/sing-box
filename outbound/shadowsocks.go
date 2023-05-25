@@ -43,6 +43,7 @@ func NewShadowsocks(ctx context.Context, router adapter.Router, logger log.Conte
 	if err != nil {
 		return nil, err
 	}
+	method.ReducedIVEntropy(options.ReducedIvHeadEntropy)
 	outbound := &Shadowsocks{
 		myOutboundAdapter: myOutboundAdapter{
 			protocol:     C.TypeShadowsocks,

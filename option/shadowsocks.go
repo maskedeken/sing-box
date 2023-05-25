@@ -23,11 +23,12 @@ type ShadowsocksDestination struct {
 type ShadowsocksOutboundOptions struct {
 	DialerOptions
 	ServerOptions
-	Method            string             `json:"method"`
-	Password          string             `json:"password"`
-	Plugin            string             `json:"plugin,omitempty"`
-	PluginOptions     string             `json:"plugin_opts,omitempty"`
-	Network           NetworkList        `json:"network,omitempty"`
-	UDPOverTCPOptions *UDPOverTCPOptions `json:"udp_over_tcp,omitempty"`
-	MultiplexOptions  *MultiplexOptions  `json:"multiplex,omitempty"`
+	Method               string             `json:"method"`
+	Password             string             `json:"password"`
+	Plugin               string             `json:"plugin,omitempty"`
+	PluginOptions        string             `json:"plugin_opts,omitempty"`
+	Network              NetworkList        `json:"network,omitempty"`
+	UDPOverTCPOptions    *UDPOverTCPOptions `json:"udp_over_tcp,omitempty"`
+	MultiplexOptions     *MultiplexOptions  `json:"multiplex,omitempty"`
+	ReducedIvHeadEntropy bool               `json:"reducedIvHeadEntropy,omitempty"`
 }
