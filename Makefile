@@ -1,6 +1,6 @@
 NAME = sing-box
 COMMIT = $(shell git rev-parse --short HEAD)
-TAGS ?= with_gvisor,with_quic,with_wireguard,with_utls,with_reality_server,with_clash_api
+TAGS ?= with_gvisor,with_quic,with_dhcp,with_wireguard,with_utls,with_reality_server,with_clash_api
 TAGS_TEST ?= with_gvisor,with_quic,with_wireguard,with_grpc,with_ech,with_utls,with_reality_server,with_shadowsocksr
 
 GOHOSTOS = $(shell go env GOHOSTOS)
@@ -48,14 +48,14 @@ proto_install:
 	go install -v google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
 
 snapshot:
-	go run ./cmd/internal/build goreleaser release --rm-dist --snapshot || exit 1
+	go run ./cmd/internal/build goreleaser release --clean --snapshot || exit 1
 	mkdir dist/release
 	mv dist/*.tar.gz dist/*.zip dist/*.deb dist/*.rpm dist/release
 	ghr --delete --draft --prerelease -p 1 nightly dist/release
 	rm -r dist
 
 release:
-	go run ./cmd/internal/build goreleaser release --rm-dist --skip-publish || exit 1
+	go run ./cmd/internal/build goreleaser release --clean --skip-publish || exit 1
 	mkdir dist/release
 	mv dist/*.tar.gz dist/*.zip dist/*.deb dist/*.rpm dist/release
 	ghr --delete --draft --prerelease -p 3 $(shell git describe --tags) dist/release
