@@ -8,9 +8,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"net"
-	"os"
 	"strings"
-	"syscall"
 
 	"github.com/sagernet/sing-box/adapter"
 	"github.com/sagernet/sing-box/common/dialer"
@@ -28,7 +26,7 @@ import (
 )
 
 var (
-	_ adapter.IPOutbound              = (*WireGuard)(nil)
+	_ adapter.Outbound                = (*WireGuard)(nil)
 	_ adapter.InterfaceUpdateListener = (*WireGuard)(nil)
 )
 
@@ -36,18 +34,18 @@ type WireGuard struct {
 	myOutboundAdapter
 	bind      *wireguard.ClientBind
 	device    *device.Device
-	natDevice wireguard.NatDevice
 	tunDevice wireguard.Device
 }
 
 func NewWireGuard(ctx context.Context, router adapter.Router, logger log.ContextLogger, tag string, options option.WireGuardOutboundOptions) (*WireGuard, error) {
 	outbound := &WireGuard{
 		myOutboundAdapter: myOutboundAdapter{
-			protocol: C.TypeWireGuard,
-			network:  options.Network.Build(),
-			router:   router,
-			logger:   logger,
-			tag:      tag,
+			protocol:     C.TypeWireGuard,
+			network:      options.Network.Build(),
+			router:       router,
+			logger:       logger,
+			tag:          tag,
+			dependencies: withDialerDependency(options.DialerOptions),
 		},
 	}
 	var reserved [3]uint8
@@ -158,25 +156,17 @@ func NewWireGuard(ctx context.Context, router adapter.Router, logger log.Context
 	if mtu == 0 {
 		mtu = 1408
 	}
-	var tunDevice wireguard.Device
+	var wireTunDevice wireguard.Device
 	var err error
 	if !options.SystemInterface && tun.WithGVisor {
-		tunDevice, err = wireguard.NewStackDevice(localPrefixes, mtu, options.IPRewrite)
+		wireTunDevice, err = wireguard.NewStackDevice(localPrefixes, mtu)
 	} else {
-		tunDevice, err = wireguard.NewSystemDevice(router, options.InterfaceName, localPrefixes, mtu)
+		wireTunDevice, err = wireguard.NewSystemDevice(router, options.InterfaceName, localPrefixes, mtu)
 	}
 	if err != nil {
 		return nil, E.Cause(err, "create WireGuard device")
 	}
-	natDevice, isNatDevice := tunDevice.(wireguard.NatDevice)
-	if !isNatDevice && router.NatRequired(tag) {
-		natDevice = wireguard.NewNATDevice(tunDevice, options.IPRewrite)
-	}
-	deviceInput := tunDevice
-	if natDevice != nil {
-		deviceInput = natDevice
-	}
-	wgDevice := device.NewDevice(deviceInput, outbound.bind, &device.Logger{
+	wgDevice := device.NewDevice(wireTunDevice, outbound.bind, &device.Logger{
 		Verbosef: func(format string, args ...interface{}) {
 			logger.Debug(fmt.Sprintf(strings.ToLower(format), args...))
 		},
@@ -192,8 +182,7 @@ func NewWireGuard(ctx context.Context, router adapter.Router, logger log.Context
 		return nil, E.Cause(err, "setup wireguard")
 	}
 	outbound.device = wgDevice
-	outbound.natDevice = natDevice
-	outbound.tunDevice = tunDevice
+	outbound.tunDevice = wireTunDevice
 	return outbound, nil
 }
 
@@ -230,27 +219,6 @@ func (w *WireGuard) NewConnection(ctx context.Context, conn net.Conn, metadata a
 
 func (w *WireGuard) NewPacketConnection(ctx context.Context, conn N.PacketConn, metadata adapter.InboundContext) error {
 	return NewPacketConnection(ctx, w, conn, metadata)
-}
-
-func (w *WireGuard) NewIPConnection(ctx context.Context, conn tun.RouteContext, metadata adapter.InboundContext) (tun.DirectDestination, error) {
-	if w.natDevice == nil {
-		return nil, os.ErrInvalid
-	}
-	session := tun.RouteSession{
-		IPVersion:   metadata.IPVersion,
-		Network:     tun.NetworkFromName(metadata.Network),
-		Source:      metadata.Source.AddrPort(),
-		Destination: metadata.Destination.AddrPort(),
-	}
-	switch session.Network {
-	case syscall.IPPROTO_TCP:
-		w.logger.InfoContext(ctx, "linked connection to ", metadata.Destination)
-	case syscall.IPPROTO_UDP:
-		w.logger.InfoContext(ctx, "linked packet connection to ", metadata.Destination)
-	default:
-		w.logger.InfoContext(ctx, "linked ", metadata.Network, " connection to ", metadata.Destination.AddrString())
-	}
-	return w.natDevice.CreateDestination(session, conn), nil
 }
 
 func (w *WireGuard) Start() error {

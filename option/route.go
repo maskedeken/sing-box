@@ -3,7 +3,6 @@ package option
 type RouteOptions struct {
 	GeoIP               *GeoIPOptions   `json:"geoip,omitempty"`
 	Geosite             *GeositeOptions `json:"geosite,omitempty"`
-	IPRules             []IPRule        `json:"ip_rules,omitempty"`
 	Rules               []Rule          `json:"rules,omitempty"`
 	Final               string          `json:"final,omitempty"`
 	FindProcess         bool            `json:"find_process,omitempty"`

@@ -8,26 +8,25 @@ import (
 	"net/netip"
 	"os"
 
+	"github.com/sagernet/gvisor/pkg/buffer"
+	"github.com/sagernet/gvisor/pkg/tcpip"
+	"github.com/sagernet/gvisor/pkg/tcpip/adapters/gonet"
+	"github.com/sagernet/gvisor/pkg/tcpip/header"
+	"github.com/sagernet/gvisor/pkg/tcpip/network/ipv4"
+	"github.com/sagernet/gvisor/pkg/tcpip/network/ipv6"
+	"github.com/sagernet/gvisor/pkg/tcpip/stack"
+	"github.com/sagernet/gvisor/pkg/tcpip/transport/icmp"
+	"github.com/sagernet/gvisor/pkg/tcpip/transport/tcp"
+	"github.com/sagernet/gvisor/pkg/tcpip/transport/udp"
 	"github.com/sagernet/sing-tun"
 	"github.com/sagernet/sing/common/buf"
 	E "github.com/sagernet/sing/common/exceptions"
 	M "github.com/sagernet/sing/common/metadata"
 	N "github.com/sagernet/sing/common/network"
 	wgTun "github.com/sagernet/wireguard-go/tun"
-
-	"gvisor.dev/gvisor/pkg/bufferv2"
-	"gvisor.dev/gvisor/pkg/tcpip"
-	"gvisor.dev/gvisor/pkg/tcpip/adapters/gonet"
-	"gvisor.dev/gvisor/pkg/tcpip/header"
-	"gvisor.dev/gvisor/pkg/tcpip/network/ipv4"
-	"gvisor.dev/gvisor/pkg/tcpip/network/ipv6"
-	"gvisor.dev/gvisor/pkg/tcpip/stack"
-	"gvisor.dev/gvisor/pkg/tcpip/transport/icmp"
-	"gvisor.dev/gvisor/pkg/tcpip/transport/tcp"
-	"gvisor.dev/gvisor/pkg/tcpip/transport/udp"
 )
 
-var _ NatDevice = (*StackDevice)(nil)
+var _ Device = (*StackDevice)(nil)
 
 const defaultNIC tcpip.NICID = 1
 
@@ -41,11 +40,9 @@ type StackDevice struct {
 	dispatcher     stack.NetworkDispatcher
 	addr4          tcpip.Address
 	addr6          tcpip.Address
-	mapping        *tun.NatMapping
-	writer         *tun.NatWriter
 }
 
-func NewStackDevice(localAddresses []netip.Prefix, mtu uint32, ipRewrite bool) (*StackDevice, error) {
+func NewStackDevice(localAddresses []netip.Prefix, mtu uint32) (*StackDevice, error) {
 	ipStack := stack.New(stack.Options{
 		NetworkProtocols:   []stack.NetworkProtocolFactory{ipv4.NewProtocol, ipv6.NewProtocol},
 		TransportProtocols: []stack.TransportProtocolFactory{tcp.NewProtocol, udp.NewProtocol, icmp.NewProtocol4, icmp.NewProtocol6},
@@ -58,14 +55,13 @@ func NewStackDevice(localAddresses []netip.Prefix, mtu uint32, ipRewrite bool) (
 		outbound:       make(chan stack.PacketBufferPtr, 256),
 		packetOutbound: make(chan *buf.Buffer, 256),
 		done:           make(chan struct{}),
-		mapping:        tun.NewNatMapping(ipRewrite),
 	}
 	err := ipStack.CreateNIC(defaultNIC, (*wireEndpoint)(tunDevice))
 	if err != nil {
 		return nil, E.New(err.String())
 	}
 	for _, prefix := range localAddresses {
-		addr := tcpip.Address(prefix.Addr().AsSlice())
+		addr := tun.AddressFromAddr(prefix.Addr())
 		protoAddr := tcpip.ProtocolAddress{
 			AddressWithPrefix: tcpip.AddressWithPrefix{
 				Address:   addr,
@@ -84,9 +80,6 @@ func NewStackDevice(localAddresses []netip.Prefix, mtu uint32, ipRewrite bool) (
 			return nil, E.New("parse local address ", protoAddr.AddressWithPrefix, ": ", err.String())
 		}
 	}
-	if ipRewrite {
-		tunDevice.writer = tun.NewNatWriter(tunDevice.Inet4Address(), tunDevice.Inet6Address())
-	}
 	sOpt := tcpip.TCPSACKEnabled(true)
 	ipStack.SetTransportProtocolOption(tcp.ProtocolNumber, &sOpt)
 	cOpt := tcpip.CongestionControlOption("cubic")
@@ -104,7 +97,7 @@ func (w *StackDevice) DialContext(ctx context.Context, network string, destinati
 	addr := tcpip.FullAddress{
 		NIC:  defaultNIC,
 		Port: destination.Port,
-		Addr: tcpip.Address(destination.Addr.AsSlice()),
+		Addr: tun.AddressFromAddr(destination.Addr),
 	}
 	bind := tcpip.FullAddress{
 		NIC: defaultNIC,
@@ -140,7 +133,7 @@ func (w *StackDevice) ListenPacket(ctx context.Context, destination M.Socksaddr)
 		NIC: defaultNIC,
 	}
 	var networkProtocol tcpip.NetworkProtocolNumber
-	if destination.IsIPv4() || w.addr6 == "" {
+	if destination.IsIPv4() {
 		networkProtocol = header.IPv4ProtocolNumber
 		bind.Addr = w.addr4
 	} else {
@@ -155,11 +148,11 @@ func (w *StackDevice) ListenPacket(ctx context.Context, destination M.Socksaddr)
 }
 
 func (w *StackDevice) Inet4Address() netip.Addr {
-	return M.AddrFromIP(net.IP(w.addr4))
+	return tun.AddrFromAddress(w.addr4)
 }
 
 func (w *StackDevice) Inet6Address() netip.Addr {
-	return M.AddrFromIP(net.IP(w.addr6))
+	return tun.AddrFromAddress(w.addr6)
 }
 
 func (w *StackDevice) Start() error {
@@ -203,14 +196,6 @@ func (w *StackDevice) Write(bufs [][]byte, offset int) (count int, err error) {
 		if len(b) == 0 {
 			continue
 		}
-		handled, err := w.mapping.WritePacket(b)
-		if handled {
-			count++
-			if err != nil {
-				return count, err
-			}
-			continue
-		}
 		var networkProtocol tcpip.NetworkProtocolNumber
 		switch header.IPVersion(b) {
 		case header.IPv4Version:
@@ -219,7 +204,7 @@ func (w *StackDevice) Write(bufs [][]byte, offset int) (count int, err error) {
 			networkProtocol = header.IPv6ProtocolNumber
 		}
 		packetBuffer := stack.NewPacketBuffer(stack.PacketBufferOptions{
-			Payload: bufferv2.MakeWithData(b),
+			Payload: buffer.MakeWithData(b),
 		})
 		w.dispatcher.DeliverNetworkPacket(networkProtocol, packetBuffer)
 		packetBuffer.DecRef()
@@ -261,44 +246,6 @@ func (w *StackDevice) Close() error {
 
 func (w *StackDevice) BatchSize() int {
 	return 1
-}
-
-func (w *StackDevice) CreateDestination(session tun.RouteSession, conn tun.RouteContext) tun.DirectDestination {
-	w.mapping.CreateSession(session, conn)
-	return &stackNatDestination{
-		device:  w,
-		session: session,
-	}
-}
-
-type stackNatDestination struct {
-	device  *StackDevice
-	session tun.RouteSession
-}
-
-func (d *stackNatDestination) WritePacket(buffer *buf.Buffer) error {
-	if d.device.writer != nil {
-		d.device.writer.RewritePacket(buffer.Bytes())
-	}
-	d.device.packetOutbound <- buffer
-	return nil
-}
-
-func (d *stackNatDestination) WritePacketBuffer(buffer stack.PacketBufferPtr) error {
-	if d.device.writer != nil {
-		d.device.writer.RewritePacketBuffer(buffer)
-	}
-	d.device.outbound <- buffer
-	return nil
-}
-
-func (d *stackNatDestination) Close() error {
-	d.device.mapping.DeleteSession(d.session)
-	return nil
-}
-
-func (d *stackNatDestination) Timeout() bool {
-	return false
 }
 
 var _ stack.LinkEndpoint = (*wireEndpoint)(nil)
