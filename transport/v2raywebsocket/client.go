@@ -4,7 +4,6 @@ import (
 	"context"
 	"net"
 	"net/http"
-	"net/url"
 	"time"
 
 	"github.com/sagernet/sing-box/adapter"
@@ -13,7 +12,6 @@ import (
 	E "github.com/sagernet/sing/common/exceptions"
 	M "github.com/sagernet/sing/common/metadata"
 	N "github.com/sagernet/sing/common/network"
-	sHTTP "github.com/sagernet/sing/protocol/http"
 	"github.com/sagernet/websocket"
 )
 
@@ -57,25 +55,28 @@ func NewClient(ctx context.Context, dialer N.Dialer, serverAddr M.Socksaddr, opt
 			return &deadConn{conn}, nil
 		}
 	}
-	var uri url.URL
-	if tlsConfig == nil {
-		uri.Scheme = "ws"
+
+	protocol := "ws"
+	if tlsConfig != nil {
+		protocol = "wss"
+	}
+
+	uri := protocol + "://" + serverAddr.String()
+	if options.Path == "" {
+		uri += "/"
+	} else if options.Path[0] != '/' {
+		uri += "/" + options.Path
 	} else {
-		uri.Scheme = "wss"
+		uri += options.Path
 	}
-	uri.Host = serverAddr.String()
-	uri.Path = options.Path
-	err := sHTTP.URLSetPath(&uri, options.Path)
-	if err != nil {
-		return nil
-	}
+
 	headers := make(http.Header)
 	for key, value := range options.Headers {
 		headers[key] = value
 	}
 	return &Client{
 		wsDialer,
-		uri.String(),
+		uri,
 		headers,
 		options.MaxEarlyData,
 		options.EarlyDataHeaderName,
