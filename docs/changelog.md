@@ -1,3 +1,13 @@
+#### 1.3-beta13
+
+* Fix resolving fakeip domains  **1**
+* Deprecate L3 routing
+* Fix bugs and update dependencies
+
+**1**:
+
+If the destination address of the connection is obtained from fakeip, dns rules with server type fakeip will be skipped.
+
 #### 1.3-beta12
 
 * Automatically add Windows firewall rules in order for the system tun stack to work

@@ -11,7 +11,7 @@ import (
 	"github.com/sagernet/sing-box/log"
 	"github.com/sagernet/sing-box/option"
 	"github.com/sagernet/sing-box/transport/sip003"
-	shadowsocks "github.com/sagernet/sing-shadowsocks2"
+	"github.com/sagernet/sing-shadowsocks2"
 	"github.com/sagernet/sing/common"
 	"github.com/sagernet/sing/common/bufio"
 	E "github.com/sagernet/sing/common/exceptions"
@@ -42,11 +42,12 @@ func NewShadowsocks(ctx context.Context, router adapter.Router, logger log.Conte
 	method.ReducedIVEntropy(options.ReducedIvHeadEntropy)
 	outbound := &Shadowsocks{
 		myOutboundAdapter: myOutboundAdapter{
-			protocol: C.TypeShadowsocks,
-			network:  options.Network.Build(),
-			router:   router,
-			logger:   logger,
-			tag:      tag,
+			protocol:     C.TypeShadowsocks,
+			network:      options.Network.Build(),
+			router:       router,
+			logger:       logger,
+			tag:          tag,
+			dependencies: withDialerDependency(options.DialerOptions),
 		},
 		dialer:     dialer.New(router, options.DialerOptions),
 		method:     method,

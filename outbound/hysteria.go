@@ -119,11 +119,12 @@ func NewHysteria(ctx context.Context, router adapter.Router, logger log.ContextL
 	}
 	return &Hysteria{
 		myOutboundAdapter: myOutboundAdapter{
-			protocol: C.TypeHysteria,
-			network:  options.Network.Build(),
-			router:   router,
-			logger:   logger,
-			tag:      tag,
+			protocol:     C.TypeHysteria,
+			network:      options.Network.Build(),
+			router:       router,
+			logger:       logger,
+			tag:          tag,
+			dependencies: withDialerDependency(options.DialerOptions),
 		},
 		ctx:        ctx,
 		dialer:     dialer.New(router, options.DialerOptions),
@@ -150,6 +151,7 @@ func (h *Hysteria) offer(ctx context.Context) (quic.Connection, error) {
 	if conn != nil && !common.Done(conn.Context()) {
 		return conn, nil
 	}
+	common.Close(h.rawConn)
 	conn, err := h.offerNew(ctx)
 	if err != nil {
 		return nil, err
@@ -260,13 +262,19 @@ func (h *Hysteria) Close() error {
 	return nil
 }
 
-func (h *Hysteria) open(ctx context.Context) (quic.Connection, quic.Stream, error) {
+func (h *Hysteria) open(ctx context.Context, reconnect bool) (quic.Connection, quic.Stream, error) {
 	conn, err := h.offer(ctx)
 	if err != nil {
+		if nErr, ok := err.(net.Error); ok && !nErr.Temporary() && reconnect {
+			return h.open(ctx, false)
+		}
 		return nil, nil, err
 	}
 	stream, err := conn.OpenStream()
 	if err != nil {
+		if nErr, ok := err.(net.Error); ok && !nErr.Temporary() && reconnect {
+			return h.open(ctx, false)
+		}
 		return nil, nil, err
 	}
 	return conn, &hysteria.StreamWrapper{Stream: stream}, nil
@@ -276,7 +284,7 @@ func (h *Hysteria) DialContext(ctx context.Context, network string, destination 
 	switch N.NetworkName(network) {
 	case N.NetworkTCP:
 		h.logger.InfoContext(ctx, "outbound connection to ", destination)
-		_, stream, err := h.open(ctx)
+		_, stream, err := h.open(ctx, true)
 		if err != nil {
 			return nil, err
 		}
@@ -302,7 +310,7 @@ func (h *Hysteria) DialContext(ctx context.Context, network string, destination 
 
 func (h *Hysteria) ListenPacket(ctx context.Context, destination M.Socksaddr) (net.PacketConn, error) {
 	h.logger.InfoContext(ctx, "outbound packet connection to ", destination)
-	conn, stream, err := h.open(ctx)
+	conn, stream, err := h.open(ctx, true)
 	if err != nil {
 		return nil, err
 	}

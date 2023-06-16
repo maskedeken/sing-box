@@ -19,10 +19,7 @@ import (
 	"github.com/sagernet/sing/common/ranges"
 )
 
-var (
-	_ adapter.Inbound = (*Tun)(nil)
-	_ tun.Router      = (*Tun)(nil)
-)
+var _ adapter.Inbound = (*Tun)(nil)
 
 type Tun struct {
 	tag                    string
@@ -161,10 +158,6 @@ func (t *Tun) Start() error {
 	}
 	t.logger.Trace("creating stack")
 	t.tunIf = tunInterface
-	var tunRouter tun.Router
-	if len(t.router.IPRules()) > 0 {
-		tunRouter = t
-	}
 	t.tunStack, err = tun.NewStack(t.stack, tun.StackOptions{
 		Context:                t.ctx,
 		Tun:                    tunInterface,
@@ -174,7 +167,6 @@ func (t *Tun) Start() error {
 		Inet6Address:           t.tunOptions.Inet6Address,
 		EndpointIndependentNat: t.endpointIndependentNat,
 		UDPTimeout:             t.udpTimeout,
-		Router:                 tunRouter,
 		Handler:                t,
 		Logger:                 t.logger,
 		ForwarderBindInterface: t.platformInterface != nil,
@@ -197,21 +189,6 @@ func (t *Tun) Close() error {
 		t.tunStack,
 		t.tunIf,
 	)
-}
-
-func (t *Tun) RouteConnection(session tun.RouteSession, conn tun.RouteContext) tun.RouteAction {
-	ctx := log.ContextWithNewID(t.ctx)
-	var metadata adapter.InboundContext
-	metadata.Inbound = t.tag
-	metadata.InboundType = C.TypeTun
-	metadata.IPVersion = session.IPVersion
-	metadata.Network = tun.NetworkName(session.Network)
-	metadata.Source = M.SocksaddrFromNetIP(session.Source)
-	metadata.Destination = M.SocksaddrFromNetIP(session.Destination)
-	metadata.InboundOptions = t.inboundOptions
-	t.logger.DebugContext(ctx, "incoming connection from ", metadata.Source)
-	t.logger.DebugContext(ctx, "incoming connection to ", metadata.Destination)
-	return t.router.RouteIPConnection(ctx, conn, metadata)
 }
 
 func (t *Tun) NewConnection(ctx context.Context, conn net.Conn, upstreamMetadata M.Metadata) error {

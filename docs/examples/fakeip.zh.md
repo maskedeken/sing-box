@@ -47,6 +47,7 @@
       "inet4_range": "198.18.0.0/15",
       "inet6_range": "fc00::/18"
     },
+    "independent_cache": true,
     "strategy": "ipv4_only"
   },
   "inbounds": [
