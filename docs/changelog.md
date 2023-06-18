@@ -1,3 +1,11 @@
+#### 1.3-rc1
+
+* Fix bugs and update dependencies
+
+#### 1.3-beta14
+
+* Fixes and improvements
+
 #### 1.3-beta13
 
 * Fix resolving fakeip domains  **1**
