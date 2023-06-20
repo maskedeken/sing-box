@@ -1,3 +1,12 @@
+#### 1.3-rc2
+
+* Fix `local` DNS transport for Android
+* Fix bugs and update dependencies
+
+#### 1.3-rc1
+
+* Fix bugs and update dependencies
+
 #### 1.3-beta14
 
 * Fixes and improvements
