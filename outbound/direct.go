@@ -174,7 +174,7 @@ func (h *Direct) DialContext(ctx context.Context, network string, destination M.
 			return nil, E.Cause(err, "write proxy protocol header")
 		}
 	}
-	if h.fragment != nil {
+	if network == N.NetworkTCP && h.fragment != nil {
 		conn = &FragmentedClientHelloConn{
 			Conn:        conn,
 			ctx:         ctx,
@@ -231,7 +231,7 @@ func (h *Direct) DialParallel(ctx context.Context, network string, destination M
 			return nil, E.Cause(err, "write proxy protocol header")
 		}
 	}
-	if h.fragment != nil {
+	if network == N.NetworkTCP && h.fragment != nil {
 		conn = &FragmentedClientHelloConn{
 			Conn:        conn,
 			ctx:         ctx,
