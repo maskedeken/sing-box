@@ -6,7 +6,7 @@ import (
 	"os"
 
 	"github.com/sagernet/sing-box/adapter"
-	dns "github.com/sagernet/sing-dns"
+	"github.com/sagernet/sing-dns"
 	E "github.com/sagernet/sing/common/exceptions"
 	"github.com/sagernet/sing/common/logger"
 	N "github.com/sagernet/sing/common/network"
