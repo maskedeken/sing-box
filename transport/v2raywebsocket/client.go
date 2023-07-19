@@ -4,6 +4,7 @@ import (
 	"context"
 	"net"
 	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/sagernet/sing-box/adapter"
@@ -12,6 +13,7 @@ import (
 	E "github.com/sagernet/sing/common/exceptions"
 	M "github.com/sagernet/sing/common/metadata"
 	N "github.com/sagernet/sing/common/network"
+	sHTTP "github.com/sagernet/sing/protocol/http"
 	"github.com/sagernet/websocket"
 )
 
@@ -19,7 +21,8 @@ var _ adapter.V2RayClientTransport = (*Client)(nil)
 
 type Client struct {
 	dialer              *websocket.Dialer
-	uri                 string
+	requestURL          url.URL
+	requestURLString    string
 	headers             http.Header
 	maxEarlyData        uint32
 	earlyDataHeaderName string
@@ -55,28 +58,26 @@ func NewClient(ctx context.Context, dialer N.Dialer, serverAddr M.Socksaddr, opt
 			return &deadConn{conn}, nil
 		}
 	}
-
-	protocol := "ws"
-	if tlsConfig != nil {
-		protocol = "wss"
-	}
-
-	uri := protocol + "://" + serverAddr.String()
-	if options.Path == "" {
-		uri += "/"
-	} else if options.Path[0] != '/' {
-		uri += "/" + options.Path
+	var requestURL url.URL
+	if tlsConfig == nil {
+		requestURL.Scheme = "ws"
 	} else {
-		uri += options.Path
+		requestURL.Scheme = "wss"
 	}
-
+	requestURL.Host = serverAddr.String()
+	requestURL.Path = options.Path
+	err := sHTTP.URLSetPath(&requestURL, options.Path)
+	if err != nil {
+		return nil
+	}
 	headers := make(http.Header)
 	for key, value := range options.Headers {
 		headers[key] = value
 	}
 	return &Client{
 		wsDialer,
-		uri,
+		requestURL,
+		requestURL.String(),
 		headers,
 		options.MaxEarlyData,
 		options.EarlyDataHeaderName,
@@ -85,7 +86,7 @@ func NewClient(ctx context.Context, dialer N.Dialer, serverAddr M.Socksaddr, opt
 
 func (c *Client) DialContext(ctx context.Context) (net.Conn, error) {
 	if c.maxEarlyData <= 0 {
-		conn, response, err := c.dialer.DialContext(ctx, c.uri, c.headers)
+		conn, response, err := c.dialer.DialContext(ctx, c.requestURLString, c.headers)
 		if err == nil {
 			return &WebsocketConn{Conn: conn, Writer: NewWriter(conn, false)}, nil
 		}
