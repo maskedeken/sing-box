@@ -4,6 +4,8 @@ github.com/Dreamacro/clash v1.17.0 h1:LWtp6KcnrCiujY58ufI8pylI+hbCBgSCsLI90EWhpi
 github.com/Dreamacro/clash v1.17.0/go.mod h1:PtcAft7sdsK325BD6uwm8wvhOkMV3TCeED6dfZ/lnfE=
 github.com/Dreamacro/protobytes v0.0.0-20230617041236-6500a9f4f158 h1:JFnwKplz9hj8ubqYjm8HkgZS1Rvz9yW+u/XCNNTxr0k=
 github.com/Dreamacro/protobytes v0.0.0-20230617041236-6500a9f4f158/go.mod h1:QvmEZ/h6KXszPOr2wUFl7Zn3hfFNYdfbXwPVDTyZs6k=
+github.com/JimmyHuang454/JLS-go v0.0.0-20230728030240-16768995519e h1:JSthD4qMue74EpIY94v623M3RX+UDElxMhjHWKcHWHU=
+github.com/JimmyHuang454/JLS-go v0.0.0-20230728030240-16768995519e/go.mod h1:bGr1SeIj/BwLkx2+p1kbaCPf6OJnGJImqcv9fYg6oII=
 github.com/ajg/form v1.5.1 h1:t9c7v8JUKu/XxOGBU0yjNpaMloxGEJhUkqFRq0ibGeU=
 github.com/ajg/form v1.5.1/go.mod h1:uL1WgH+h2mgNtvBq0339dVnzXdBETtL2LeUXaIv25UY=
 github.com/andybalholm/brotli v1.0.5 h1:8uQZIdzKmjc/iuPu7O2ioW48L81FgatrcpfFmiq/cCs=
