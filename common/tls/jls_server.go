@@ -1,3 +1,5 @@
+//go:build with_jls_server
+
 package tls
 
 import (
@@ -150,4 +152,8 @@ func (c *JLSConnWrapper) ConnectionState() tls.ConnectionState {
 		OCSPResponse:                state.OCSPResponse,
 		TLSUnique:                   state.TLSUnique,
 	}
+}
+
+func (c *JLSConnWrapper) Upstream() any {
+	return c.Conn
 }

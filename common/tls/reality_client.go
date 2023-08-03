@@ -11,18 +11,13 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"crypto/sha512"
-	"crypto/tls"
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/binary"
 	"encoding/hex"
 	"fmt"
-	"io"
-	mRand "math/rand"
 	"net"
-	"net/http"
 	"reflect"
-	"strings"
 	"time"
 	"unsafe"
 
@@ -34,7 +29,6 @@ import (
 	utls "github.com/sagernet/utls"
 
 	"golang.org/x/crypto/hkdf"
-	"golang.org/x/net/http2"
 )
 
 var _ ConfigCompat = (*RealityClientConfig)(nil)
@@ -171,31 +165,11 @@ func (e *RealityClientConfig) ClientHandshake(ctx context.Context, conn net.Conn
 	}
 
 	if !verifier.verified {
-		go realityClientFallback(uConn, e.uClient.ServerName(), e.uClient.id)
+		go uTLSClientFallback(uConn, e.uClient.ServerName(), e.uClient.id)
 		return nil, E.New("reality verification failed")
 	}
 
 	return &utlsConnWrapper{uConn}, nil
-}
-
-func realityClientFallback(uConn net.Conn, serverName string, fingerprint utls.ClientHelloID) {
-	defer uConn.Close()
-	client := &http.Client{
-		Transport: &http2.Transport{
-			DialTLSContext: func(ctx context.Context, network, addr string, config *tls.Config) (net.Conn, error) {
-				return uConn, nil
-			},
-		},
-	}
-	request, _ := http.NewRequest("GET", "https://"+serverName, nil)
-	request.Header.Set("User-Agent", fingerprint.Client)
-	request.AddCookie(&http.Cookie{Name: "padding", Value: strings.Repeat("0", mRand.Intn(32)+30)})
-	response, err := client.Do(request)
-	if err != nil {
-		return
-	}
-	_, _ = io.Copy(io.Discard, response.Body)
-	response.Body.Close()
 }
 
 func (e *RealityClientConfig) SetSessionIDGenerator(generator func(clientHello []byte, sessionID []byte) error) {

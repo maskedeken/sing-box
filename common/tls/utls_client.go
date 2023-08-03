@@ -6,10 +6,14 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
+	"io"
 	"math/rand"
+	mRand "math/rand"
 	"net"
+	"net/http"
 	"net/netip"
 	"os"
+	"strings"
 
 	"github.com/sagernet/sing-box/adapter"
 	"github.com/sagernet/sing-box/option"
@@ -239,4 +243,24 @@ func uTLSClientHelloID(name string) (utls.ClientHelloID, error) {
 	default:
 		return utls.ClientHelloID{}, E.New("unknown uTLS fingerprint: ", name)
 	}
+}
+
+func uTLSClientFallback(uConn net.Conn, serverName string, fingerprint utls.ClientHelloID) {
+	defer uConn.Close()
+	client := &http.Client{
+		Transport: &http2.Transport{
+			DialTLSContext: func(ctx context.Context, network, addr string, config *tls.Config) (net.Conn, error) {
+				return uConn, nil
+			},
+		},
+	}
+	request, _ := http.NewRequest("GET", "https://"+serverName, nil)
+	request.Header.Set("User-Agent", fingerprint.Client)
+	request.AddCookie(&http.Cookie{Name: "padding", Value: strings.Repeat("0", mRand.Intn(32)+30)})
+	response, err := client.Do(request)
+	if err != nil {
+		return
+	}
+	_, _ = io.Copy(io.Discard, response.Body)
+	response.Body.Close()
 }
