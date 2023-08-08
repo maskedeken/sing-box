@@ -13,21 +13,21 @@ require (
 	github.com/go-chi/cors v1.2.1
 	github.com/go-chi/render v1.0.3
 	github.com/gofrs/uuid/v5 v5.0.0
-	github.com/insomniacslk/dhcp v0.0.0-20230720093626-5648422c16cd
+	github.com/insomniacslk/dhcp v0.0.0-20230731140434-0f9eb93a696c
 	github.com/logrusorgru/aurora v2.0.3+incompatible
 	github.com/mholt/acmez v1.2.0
 	github.com/miekg/dns v1.1.55
 	github.com/ooni/go-libtor v1.1.8
-	github.com/oschwald/maxminddb-golang v1.11.0
+	github.com/oschwald/maxminddb-golang v1.12.0
 	github.com/pires/go-proxyproto v0.7.0
 	github.com/sagernet/cloudflare-tls v0.0.0-20221031050923-d70792f4c3a0
 	github.com/sagernet/gomobile v0.0.0-20230728014906-3de089147f59
 	github.com/sagernet/gvisor v0.0.0-20230627031050-1ab0276e0dd2
 	github.com/sagernet/quic-go v0.0.0-20230731012313-1327e4015111
 	github.com/sagernet/reality v0.0.0-20230406110435-ee17307e7691
-	github.com/sagernet/sing v0.2.10-0.20230731010140-26d3f3d91bda
+	github.com/sagernet/sing v0.2.10-0.20230802105922-c6a69b4912ee
 	github.com/sagernet/sing-dns v0.1.9-0.20230731012726-ad50da89b659
-	github.com/sagernet/sing-mux v0.1.2
+	github.com/sagernet/sing-mux v0.1.3-0.20230803070305-ea4a972acd21
 	github.com/sagernet/sing-shadowsocks v0.2.4
 	github.com/sagernet/sing-shadowsocks2 v0.1.3
 	github.com/sagernet/sing-shadowtls v0.1.4
@@ -41,12 +41,12 @@ require (
 	github.com/spf13/cobra v1.7.0
 	github.com/stretchr/testify v1.8.4
 	go.etcd.io/bbolt v1.3.7
-	go.uber.org/zap v1.24.0
+	go.uber.org/zap v1.25.0
 	go4.org/netipx v0.0.0-20230728184502-ec4c8b891b28
-	golang.org/x/crypto v0.11.0
+	golang.org/x/crypto v0.12.0
 	golang.org/x/exp v0.0.0-20230626212559-97b1e661b5df
-	golang.org/x/net v0.12.0
-	golang.org/x/sys v0.10.0
+	golang.org/x/net v0.14.0
+	golang.org/x/sys v0.11.0
 	golang.zx2c4.com/wireguard/wgctrl v0.0.0-20230429144221-925a1e7659e6
 	google.golang.org/grpc v1.57.0
 	google.golang.org/protobuf v1.31.0
@@ -55,7 +55,7 @@ require (
 //replace github.com/sagernet/sing => ../sing
 replace github.com/sagernet/sing-shadowtls => github.com/maskedeken/sing-shadowtls v0.0.0-20230726015628-51b045336623
 
-replace github.com/sagernet/sing-mux => github.com/maskedeken/sing-mux v0.0.0-20230726015822-d1a484a6e527
+replace github.com/sagernet/sing-mux => github.com/maskedeken/sing-mux v0.0.0-20230808015628-63e294290501
 
 replace github.com/sagernet/sing-shadowsocks2 => github.com/maskedeken/sing-shadowsocks2 v0.0.0-20230726015450-b26a35762980
 
@@ -79,7 +79,6 @@ require (
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
 	github.com/onsi/ginkgo/v2 v2.9.5 // indirect
 	github.com/pierrec/lz4/v4 v4.1.14 // indirect
-	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/quic-go/qpack v0.4.0 // indirect
 	github.com/quic-go/qtls-go1-18 v0.2.0 // indirect
@@ -92,10 +91,9 @@ require (
 	github.com/u-root/uio v0.0.0-20230220225925-ffce2a382923 // indirect
 	github.com/vishvananda/netns v0.0.0-20211101163701-50045581ed74 // indirect
 	github.com/zeebo/blake3 v0.2.3 // indirect
-	go.uber.org/atomic v1.11.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/mod v0.11.0 // indirect
-	golang.org/x/text v0.11.0 // indirect
+	golang.org/x/text v0.12.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
 	golang.org/x/tools v0.10.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20230525234030-28d5490b6b19 // indirect
