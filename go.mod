@@ -53,6 +53,11 @@ require (
 )
 
 //replace github.com/sagernet/sing => ../sing
+replace github.com/sagernet/sing-shadowtls => github.com/maskedeken/sing-shadowtls v0.0.0-20230726015628-51b045336623
+
+replace github.com/sagernet/sing-mux => github.com/maskedeken/sing-mux v0.0.0-20230808015628-63e294290501
+
+replace github.com/sagernet/sing-shadowsocks2 => github.com/maskedeken/sing-shadowsocks2 v0.0.0-20230726015450-b26a35762980
 
 require (
 	github.com/Dreamacro/protobytes v0.0.0-20230617041236-6500a9f4f158 // indirect
