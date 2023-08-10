@@ -49,6 +49,10 @@ type Fragment struct {
 
 func NewDirect(router adapter.Router, logger log.ContextLogger, tag string, options option.DirectOutboundOptions) (*Direct, error) {
 	options.UDPFragmentDefault = true
+	outboundDialer, err := dialer.New(router, options.DialerOptions)
+	if err != nil {
+		return nil, err
+	}
 	outbound := &Direct{
 		myOutboundAdapter: myOutboundAdapter{
 			protocol:     C.TypeDirect,
@@ -60,7 +64,7 @@ func NewDirect(router adapter.Router, logger log.ContextLogger, tag string, opti
 		},
 		domainStrategy: dns.DomainStrategy(options.DomainStrategy),
 		fallbackDelay:  time.Duration(options.FallbackDelay),
-		dialer:         dialer.New(router, options.DialerOptions),
+		dialer:         outboundDialer,
 		proxyProto:     options.ProxyProtocol,
 	}
 	if options.ProxyProtocol > 2 {

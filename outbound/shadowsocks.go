@@ -40,6 +40,10 @@ func NewShadowsocks(ctx context.Context, router adapter.Router, logger log.Conte
 		return nil, err
 	}
 	method.ReducedIVEntropy(options.ReducedIvHeadEntropy)
+	outboundDialer, err := dialer.New(router, options.DialerOptions)
+	if err != nil {
+		return nil, err
+	}
 	outbound := &Shadowsocks{
 		myOutboundAdapter: myOutboundAdapter{
 			protocol:     C.TypeShadowsocks,
@@ -49,7 +53,7 @@ func NewShadowsocks(ctx context.Context, router adapter.Router, logger log.Conte
 			tag:          tag,
 			dependencies: withDialerDependency(options.DialerOptions),
 		},
-		dialer:     dialer.New(router, options.DialerOptions),
+		dialer:     outboundDialer,
 		method:     method,
 		serverAddr: options.ServerOptions.Build(),
 	}
