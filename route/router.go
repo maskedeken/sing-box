@@ -636,6 +636,7 @@ func (r *Router) RouteConnection(ctx context.Context, conn net.Conn, metadata ad
 		if !loaded {
 			return E.New("missing fakeip context")
 		}
+		metadata.OriginDestination = metadata.Destination
 		metadata.Destination = M.Socksaddr{
 			Fqdn: domain,
 			Port: metadata.Destination.Port,
@@ -739,13 +740,12 @@ func (r *Router) RoutePacketConnection(ctx context.Context, conn N.PacketConn, m
 	}
 	metadata.Network = N.NetworkUDP
 
-	var originAddress M.Socksaddr
 	if r.fakeIPStore != nil && r.fakeIPStore.Contains(metadata.Destination.Addr) {
 		domain, loaded := r.fakeIPStore.Lookup(metadata.Destination.Addr)
 		if !loaded {
 			return E.New("missing fakeip context")
 		}
-		originAddress = metadata.Destination
+		metadata.OriginDestination = metadata.Destination
 		metadata.Destination = M.Socksaddr{
 			Fqdn: domain,
 			Port: metadata.Destination.Port,
@@ -759,13 +759,16 @@ func (r *Router) RoutePacketConnection(ctx context.Context, conn N.PacketConn, m
 		conn = deadline.NewPacketConn(bufio.NewNetPacketConn(conn))
 	}*/
 
-	if metadata.InboundOptions.SniffEnabled {
+	if metadata.InboundOptions.SniffEnabled || metadata.Destination.Addr.IsUnspecified() {
 		buffer := buf.NewPacket()
 		buffer.FullReset()
 		destination, err := conn.ReadPacket(buffer)
 		if err != nil {
 			buffer.Release()
 			return err
+		}
+		if metadata.Destination.Addr.IsUnspecified() {
+			metadata.Destination = destination
 		}
 		sniffMetadata, _ := sniff.PeekPacket(ctx, buffer.Bytes(), sniff.DomainNameQuery, sniff.QUICClientHello, sniff.STUNMessage)
 		if sniffMetadata != nil {
@@ -817,8 +820,8 @@ func (r *Router) RoutePacketConnection(ctx context.Context, conn N.PacketConn, m
 			conn = statsService.RoutedPacketConnection(metadata.Inbound, detour.Tag(), metadata.User, conn)
 		}
 	}
-	if originAddress.IsValid() {
-		conn = fakeip.NewNATPacketConn(conn, originAddress, metadata.Destination)
+	if metadata.FakeIP {
+		conn = fakeip.NewNATPacketConn(conn, metadata.OriginDestination, metadata.Destination)
 	}
 	return detour.NewPacketConnection(ctx, conn, metadata)
 }

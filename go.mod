@@ -23,15 +23,15 @@ require (
 	github.com/sagernet/cloudflare-tls v0.0.0-20221031050923-d70792f4c3a0
 	github.com/sagernet/gomobile v0.0.0-20230728014906-3de089147f59
 	github.com/sagernet/gvisor v0.0.0-20230627031050-1ab0276e0dd2
-	github.com/sagernet/quic-go v0.0.0-20230809023643-d720ed35ac2b
+	github.com/sagernet/quic-go v0.0.0-20230811130919-d6f54a117913
 	github.com/sagernet/reality v0.0.0-20230406110435-ee17307e7691
 	github.com/sagernet/sing v0.2.10-0.20230807080248-4db0062caa0a
 	github.com/sagernet/sing-dns v0.1.9-0.20230731012726-ad50da89b659
-	github.com/sagernet/sing-mux v0.1.3-0.20230803070305-ea4a972acd21
+	github.com/sagernet/sing-mux v0.1.3-0.20230811111955-dc1639b5204c
 	github.com/sagernet/sing-shadowsocks v0.2.4
 	github.com/sagernet/sing-shadowsocks2 v0.1.3
 	github.com/sagernet/sing-shadowtls v0.1.4
-	github.com/sagernet/sing-tun v0.1.12-0.20230808120247-47ab78d303db
+	github.com/sagernet/sing-tun v0.1.12-0.20230812113806-10d98f26797a
 	github.com/sagernet/sing-vmess v0.1.7
 	github.com/sagernet/smux v0.0.0-20230312102458-337ec2a5af37
 	github.com/sagernet/tfo-go v0.0.0-20230303015439-ffcfd8c41cf9
@@ -54,8 +54,6 @@ require (
 
 //replace github.com/sagernet/sing => ../sing
 replace github.com/sagernet/sing-shadowtls => github.com/maskedeken/sing-shadowtls v0.0.0-20230726015628-51b045336623
-
-replace github.com/sagernet/sing-mux => github.com/maskedeken/sing-mux v0.0.0-20230808015628-63e294290501
 
 replace github.com/sagernet/sing-shadowsocks2 => github.com/maskedeken/sing-shadowsocks2 v0.0.0-20230726015450-b26a35762980
 
