@@ -224,7 +224,7 @@ func (h *Hysteria) offerNew(ctx context.Context) (quic.Connection, error) {
 	}
 	//
 	if h.xplusKey != nil {
-		packetConn = hysteria.NewXPlusPacketConn(packetConn, h.xplusKey)
+		packetConn = hysteria.NewXPlusPacketConn(packetConn, h.xplusKey, h.hopPorts != "")
 	}
 	if h.hopPorts == "" {
 		packetConn = &hysteria.PacketConnWrapper{PacketConn: packetConn}
