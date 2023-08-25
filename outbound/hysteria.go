@@ -197,13 +197,13 @@ func (h *Hysteria) offerNew(ctx context.Context) (quic.Connection, error) {
 		if err != nil {
 			return nil, E.Cause(err, "hop.ParseAddr")
 		}
-		packetConn, addr, err = hop.NewUDPHopClientPacketConn(hyAddrStr, h.hopInterval, func() (net.PacketConn, error) {
-			return h.dialer.ListenPacket(ctx, M.ParseSocksaddrHostPort(host, ports[0]))
+		packetConn, addr, err = hop.NewUDPHopClientPacketConn(h.ctx, hyAddrStr, h.hopInterval, func() (net.PacketConn, error) {
+			return h.dialer.ListenPacket(h.ctx, M.ParseSocksaddrHostPort(host, ports[0]))
 		}, func(host string) (net.IP, error) {
 			if ip := net.ParseIP(host); ip != nil {
 				return ip, nil
 			}
-			ips, err := h.router.LookupDefault(ctx, host)
+			ips, err := h.router.LookupDefault(h.ctx, host)
 			if err != nil {
 				return nil, err
 			}

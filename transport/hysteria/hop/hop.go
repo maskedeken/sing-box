@@ -1,6 +1,7 @@
 package hop
 
 import (
+	"context"
 	"math/rand"
 	"net"
 	"strconv"
@@ -21,6 +22,8 @@ type ResolveFunc func(host string) (net.IP, error)
 // UDPHopClientPacketConn is the UDP port-hopping packet connection for client side.
 // It hops to a different local & server port every once in a while.
 type UDPHopClientPacketConn struct {
+	ctx context.Context
+
 	listenPacket ListenPacketFunc
 	serverAddr   net.Addr // Combined udpHopAddr
 	serverAddrs  []net.Addr
@@ -57,7 +60,7 @@ type udpPacket struct {
 	addr net.Addr
 }
 
-func NewUDPHopClientPacketConn(server string, hopInterval time.Duration, listenPacket ListenPacketFunc, lookupFunc ResolveFunc) (*UDPHopClientPacketConn, net.Addr, error) {
+func NewUDPHopClientPacketConn(ctx context.Context, server string, hopInterval time.Duration, listenPacket ListenPacketFunc, lookupFunc ResolveFunc) (*UDPHopClientPacketConn, net.Addr, error) {
 	host, ports, err := ParseAddr(server)
 	if err != nil {
 		return nil, nil, err
@@ -76,6 +79,7 @@ func NewUDPHopClientPacketConn(server string, hopInterval time.Duration, listenP
 	}
 	hopAddr := udpHopAddr(server)
 	conn := &UDPHopClientPacketConn{
+		ctx:          ctx,
 		listenPacket: listenPacket,
 		serverAddr:   &hopAddr,
 		serverAddrs:  serverAddrs,
@@ -122,6 +126,8 @@ func (c *UDPHopClientPacketConn) hopRoutine() {
 		select {
 		case <-ticker.C:
 			c.hop()
+		case <-c.ctx.Done():
+			_ = c.Close()
 		case <-c.closeChan:
 			return
 		}

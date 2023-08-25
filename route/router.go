@@ -26,9 +26,9 @@ import (
 	"github.com/sagernet/sing-box/option"
 	"github.com/sagernet/sing-box/outbound"
 	"github.com/sagernet/sing-box/transport/fakeip"
-	"github.com/sagernet/sing-dns"
-	"github.com/sagernet/sing-tun"
-	"github.com/sagernet/sing-vmess"
+	dns "github.com/sagernet/sing-dns"
+	tun "github.com/sagernet/sing-tun"
+	vmess "github.com/sagernet/sing-vmess"
 	"github.com/sagernet/sing/common"
 	"github.com/sagernet/sing/common/buf"
 	"github.com/sagernet/sing/common/bufio"
@@ -268,7 +268,7 @@ func NewRouter(
 
 	if !usePlatformDefaultInterfaceMonitor {
 		networkMonitor, err := tun.NewNetworkUpdateMonitor(router.logger)
-		if !((err != nil && !needInterfaceMonitor) || errors.Is(err, os.ErrInvalid)) {
+		if !(!needInterfaceMonitor || errors.Is(err, os.ErrInvalid)) {
 			if err != nil {
 				return nil, err
 			}
@@ -770,20 +770,22 @@ func (r *Router) RoutePacketConnection(ctx context.Context, conn N.PacketConn, m
 		if metadata.Destination.Addr.IsUnspecified() {
 			metadata.Destination = destination
 		}
-		sniffMetadata, _ := sniff.PeekPacket(ctx, buffer.Bytes(), sniff.DomainNameQuery, sniff.QUICClientHello, sniff.STUNMessage)
-		if sniffMetadata != nil {
-			metadata.Protocol = sniffMetadata.Protocol
-			metadata.Domain = sniffMetadata.Domain
-			if metadata.InboundOptions.SniffOverrideDestination && M.IsDomainName(metadata.Domain) {
-				metadata.Destination = M.Socksaddr{
-					Fqdn: metadata.Domain,
-					Port: metadata.Destination.Port,
+		if metadata.InboundOptions.SniffEnabled {
+			sniffMetadata, _ := sniff.PeekPacket(ctx, buffer.Bytes(), sniff.DomainNameQuery, sniff.QUICClientHello, sniff.STUNMessage)
+			if sniffMetadata != nil {
+				metadata.Protocol = sniffMetadata.Protocol
+				metadata.Domain = sniffMetadata.Domain
+				if metadata.InboundOptions.SniffOverrideDestination && M.IsDomainName(metadata.Domain) {
+					metadata.Destination = M.Socksaddr{
+						Fqdn: metadata.Domain,
+						Port: metadata.Destination.Port,
+					}
 				}
-			}
-			if metadata.Domain != "" {
-				r.logger.DebugContext(ctx, "sniffed packet protocol: ", metadata.Protocol, ", domain: ", metadata.Domain)
-			} else {
-				r.logger.DebugContext(ctx, "sniffed packet protocol: ", metadata.Protocol)
+				if metadata.Domain != "" {
+					r.logger.DebugContext(ctx, "sniffed packet protocol: ", metadata.Protocol, ", domain: ", metadata.Domain)
+				} else {
+					r.logger.DebugContext(ctx, "sniffed packet protocol: ", metadata.Protocol)
+				}
 			}
 		}
 		conn = bufio.NewCachedPacketConn(conn, buffer, destination)
