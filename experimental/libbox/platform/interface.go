@@ -18,11 +18,13 @@ type Interface interface {
 	UsePlatformAutoDetectInterfaceControl() bool
 	AutoDetectInterfaceControl() control.Func
 	OpenTun(options *tun.Options, platformOptions option.TunPlatformOptions) (tun.Tun, error)
+	CloseTun() error
 	UsePlatformDefaultInterfaceMonitor() bool
 	CreateDefaultInterfaceMonitor(logger logger.Logger) tun.DefaultInterfaceMonitor
 	UsePlatformInterfaceGetter() bool
 	Interfaces() ([]NetworkInterface, error)
 	UnderNetworkExtension() bool
+	ClearDNSCache()
 	process.Searcher
 	io.Writer
 }
