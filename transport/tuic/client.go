@@ -324,7 +324,3 @@ func (c *clientConn) SetWriteDeadline(t time.Time) error {
 	}
 	return c.stream.SetWriteDeadline(t)
 }
-
-func (c *clientConn) NeedHandshake() bool {
-	return !c.requestWritten
-}
