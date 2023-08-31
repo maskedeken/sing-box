@@ -30,5 +30,5 @@ type ShadowsocksOutboundOptions struct {
 	Network              NetworkList        `json:"network,omitempty"`
 	UDPOverTCPOptions    *UDPOverTCPOptions `json:"udp_over_tcp,omitempty"`
 	MultiplexOptions     *MultiplexOptions  `json:"multiplex,omitempty"`
-	ReducedIvHeadEntropy bool               `json:"reducedIvHeadEntropy,omitempty"`
+	ReducedIvHeadEntropy bool               `json:"reduced_iv_head_entropy,omitempty"`
 }
