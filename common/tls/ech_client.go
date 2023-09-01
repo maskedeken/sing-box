@@ -7,50 +7,53 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/base64"
+	"encoding/pem"
 	"net"
 	"net/netip"
 	"os"
+	"strings"
 
 	cftls "github.com/sagernet/cloudflare-tls"
 	"github.com/sagernet/sing-box/adapter"
 	"github.com/sagernet/sing-box/option"
 	"github.com/sagernet/sing-dns"
 	E "github.com/sagernet/sing/common/exceptions"
+	"github.com/sagernet/sing/common/ntp"
 
 	mDNS "github.com/miekg/dns"
 )
 
-type ECHClientConfig struct {
+type echClientConfig struct {
 	config *cftls.Config
 }
 
-func (e *ECHClientConfig) ServerName() string {
-	return e.config.ServerName
+func (c *echClientConfig) ServerName() string {
+	return c.config.ServerName
 }
 
-func (e *ECHClientConfig) SetServerName(serverName string) {
-	e.config.ServerName = serverName
+func (c *echClientConfig) SetServerName(serverName string) {
+	c.config.ServerName = serverName
 }
 
-func (e *ECHClientConfig) NextProtos() []string {
-	return e.config.NextProtos
+func (c *echClientConfig) NextProtos() []string {
+	return c.config.NextProtos
 }
 
-func (e *ECHClientConfig) SetNextProtos(nextProto []string) {
-	e.config.NextProtos = nextProto
+func (c *echClientConfig) SetNextProtos(nextProto []string) {
+	c.config.NextProtos = nextProto
 }
 
-func (e *ECHClientConfig) Config() (*STDConfig, error) {
+func (c *echClientConfig) Config() (*STDConfig, error) {
 	return nil, E.New("unsupported usage for ECH")
 }
 
-func (e *ECHClientConfig) Client(conn net.Conn) (Conn, error) {
-	return &echConnWrapper{cftls.Client(conn, e.config)}, nil
+func (c *echClientConfig) Client(conn net.Conn) (Conn, error) {
+	return &echConnWrapper{cftls.Client(conn, c.config)}, nil
 }
 
-func (e *ECHClientConfig) Clone() Config {
-	return &ECHClientConfig{
-		config: e.config.Clone(),
+func (c *echClientConfig) Clone() Config {
+	return &echClientConfig{
+		config: c.config.Clone(),
 	}
 }
 
@@ -80,7 +83,7 @@ func (c *echConnWrapper) Upstream() any {
 	return c.Conn
 }
 
-func NewECHClient(router adapter.Router, serverAddress string, options option.OutboundTLSOptions) (Config, error) {
+func NewECHClient(ctx context.Context, serverAddress string, options option.OutboundTLSOptions) (Config, error) {
 	var serverName string
 	if options.ServerName != "" {
 		serverName = options.ServerName
@@ -94,7 +97,7 @@ func NewECHClient(router adapter.Router, serverAddress string, options option.Ou
 	}
 
 	var tlsConfig cftls.Config
-	tlsConfig.Time = router.TimeFunc()
+	tlsConfig.Time = ntp.TimeFuncFromContext(ctx)
 	if options.DisableSNI {
 		tlsConfig.ServerName = "127.0.0.1"
 	} else {
@@ -168,24 +171,24 @@ func NewECHClient(router adapter.Router, serverAddress string, options option.Ou
 	tlsConfig.ECHEnabled = true
 	tlsConfig.PQSignatureSchemesEnabled = options.ECH.PQSignatureSchemesEnabled
 	tlsConfig.DynamicRecordSizingDisabled = options.ECH.DynamicRecordSizingDisabled
-	if options.ECH.Config != "" {
-		clientConfigContent, err := base64.StdEncoding.DecodeString(options.ECH.Config)
-		if err != nil {
-			return nil, err
+	if len(options.ECH.Config) > 0 {
+		block, rest := pem.Decode([]byte(strings.Join(options.ECH.Config, "\n")))
+		if block == nil || block.Type != "ECH CONFIGS" || len(rest) > 0 {
+			return nil, E.New("invalid ECH configs pem")
 		}
-		clientConfig, err := cftls.UnmarshalECHConfigs(clientConfigContent)
+		echConfigs, err := cftls.UnmarshalECHConfigs(block.Bytes)
 		if err != nil {
-			return nil, err
+			return nil, E.Cause(err, "parse ECH configs")
 		}
-		tlsConfig.ClientECHConfigs = clientConfig
+		tlsConfig.ClientECHConfigs = echConfigs
 	} else {
-		tlsConfig.GetClientECHConfigs = fetchECHClientConfig(router)
+		tlsConfig.GetClientECHConfigs = fetchECHClientConfig(ctx)
 	}
-	return &ECHClientConfig{&tlsConfig}, nil
+	return &echClientConfig{&tlsConfig}, nil
 }
 
-func fetchECHClientConfig(router adapter.Router) func(ctx context.Context, serverName string) ([]cftls.ECHConfig, error) {
-	return func(ctx context.Context, serverName string) ([]cftls.ECHConfig, error) {
+func fetchECHClientConfig(ctx context.Context) func(_ context.Context, serverName string) ([]cftls.ECHConfig, error) {
+	return func(_ context.Context, serverName string) ([]cftls.ECHConfig, error) {
 		message := &mDNS.Msg{
 			MsgHdr: mDNS.MsgHdr{
 				RecursionDesired: true,
@@ -198,7 +201,7 @@ func fetchECHClientConfig(router adapter.Router) func(ctx context.Context, serve
 				},
 			},
 		}
-		response, err := router.Exchange(ctx, message)
+		response, err := adapter.RouterFromContext(ctx).Exchange(ctx, message)
 		if err != nil {
 			return nil, err
 		}
