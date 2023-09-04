@@ -23,6 +23,8 @@ type _Outbound struct {
 	ShadowTLSOptions    ShadowTLSOutboundOptions    `json:"-"`
 	ShadowsocksROptions ShadowsocksROutboundOptions `json:"-"`
 	VLESSOptions        VLESSOutboundOptions        `json:"-"`
+	TUICOptions         TUICOutboundOptions         `json:"-"`
+	Hysteria2Options    Hysteria2OutboundOptions    `json:"-"`
 	SelectorOptions     SelectorOutboundOptions     `json:"-"`
 	URLTestOptions      URLTestOutboundOptions      `json:"-"`
 }
@@ -60,6 +62,10 @@ func (h Outbound) MarshalJSON() ([]byte, error) {
 		v = h.ShadowsocksROptions
 	case C.TypeVLESS:
 		v = h.VLESSOptions
+	case C.TypeTUIC:
+		v = h.TUICOptions
+	case C.TypeHysteria2:
+		v = h.Hysteria2Options
 	case C.TypeSelector:
 		v = h.SelectorOptions
 	case C.TypeURLTest:
@@ -105,6 +111,10 @@ func (h *Outbound) UnmarshalJSON(bytes []byte) error {
 		v = &h.ShadowsocksROptions
 	case C.TypeVLESS:
 		v = &h.VLESSOptions
+	case C.TypeTUIC:
+		v = &h.TUICOptions
+	case C.TypeHysteria2:
+		v = &h.Hysteria2Options
 	case C.TypeSelector:
 		v = &h.SelectorOptions
 	case C.TypeURLTest:
@@ -129,6 +139,7 @@ type DialerOptions struct {
 	ReuseAddr          bool           `json:"reuse_addr,omitempty"`
 	ConnectTimeout     Duration       `json:"connect_timeout,omitempty"`
 	TCPFastOpen        bool           `json:"tcp_fast_open,omitempty"`
+	TCPMultiPath       bool           `json:"tcp_multi_path,omitempty"`
 	UDPFragment        *bool          `json:"udp_fragment,omitempty"`
 	UDPFragmentDefault bool           `json:"-"`
 	DomainStrategy     DomainStrategy `json:"domain_strategy,omitempty"`

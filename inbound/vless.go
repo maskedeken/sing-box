@@ -54,7 +54,7 @@ func NewVLESS(ctx context.Context, router adapter.Router, logger log.ContextLogg
 	}
 	var err error
 	if options.TLS != nil {
-		inbound.tlsConfig, err = tls.NewServer(ctx, router, logger, common.PtrValueOrDefault(options.TLS))
+		inbound.tlsConfig, err = tls.NewServer(ctx, logger, common.PtrValueOrDefault(options.TLS))
 		if err != nil {
 			return nil, err
 		}

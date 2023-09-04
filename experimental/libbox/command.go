@@ -8,4 +8,7 @@ const (
 	CommandGroup
 	CommandSelectOutbound
 	CommandURLTest
+	CommandGroupExpand
+	CommandClashMode
+	CommandSetClashMode
 )

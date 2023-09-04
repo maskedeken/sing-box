@@ -10,7 +10,6 @@ import (
 	"crypto/sha256"
 	"net"
 
-	"github.com/sagernet/sing-box/adapter"
 	"github.com/sagernet/sing-box/option"
 	E "github.com/sagernet/sing/common/exceptions"
 	aTLS "github.com/sagernet/sing/common/tls"
@@ -133,7 +132,7 @@ func setZero(dst []byte) {
 	}
 }
 
-func NewJLSlient(router adapter.Router, serverAddress string, options option.OutboundTLSOptions) (Config, error) {
+func NewJLSlient(ctx context.Context, serverAddress string, options option.OutboundTLSOptions) (Config, error) {
 	if options.UTLS == nil || !options.UTLS.Enabled {
 		return nil, E.New("uTLS is required by JLS client")
 	}
@@ -146,7 +145,7 @@ func NewJLSlient(router adapter.Router, serverAddress string, options option.Out
 		return nil, E.New("empty random")
 	}
 
-	uClient, err := NewUTLSClient(router, serverAddress, options)
+	uClient, err := NewUTLSClient(ctx, serverAddress, options)
 	if err != nil {
 		return nil, err
 	}

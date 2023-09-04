@@ -85,6 +85,9 @@ func (t *Transport) Start() error {
 	return nil
 }
 
+func (t *Transport) Reset() {
+}
+
 func (t *Transport) Close() error {
 	if t.interfaceCallback != nil {
 		t.router.InterfaceMonitor().UnregisterCallback(t.interfaceCallback)
@@ -162,8 +165,11 @@ func (t *Transport) updateServers() error {
 	}
 }
 
-func (t *Transport) interfaceUpdated(int) error {
-	return t.updateServers()
+func (t *Transport) interfaceUpdated(int) {
+	err := t.updateServers()
+	if err != nil {
+		t.logger.Error("update servers: ", err)
+	}
 }
 
 func (t *Transport) fetchServers0(ctx context.Context, iface *net.Interface) error {
@@ -245,10 +251,10 @@ func (t *Transport) recreateServers(iface *net.Interface, serverAddrs []netip.Ad
 		}), ","), "]")
 	}
 
-	serverDialer := dialer.NewDefault(t.router, option.DialerOptions{
+	serverDialer := common.Must1(dialer.NewDefault(t.router, option.DialerOptions{
 		BindInterface:      iface.Name,
 		UDPFragmentDefault: true,
-	})
+	}))
 	var transports []dns.Transport
 	for _, serverAddr := range serverAddrs {
 		serverTransport, err := dns.NewUDPTransport(t.name, t.ctx, serverDialer, M.Socksaddr{Addr: serverAddr, Port: 53})

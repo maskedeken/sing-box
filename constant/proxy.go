@@ -21,6 +21,8 @@ const (
 	TypeShadowTLS    = "shadowtls"
 	TypeShadowsocksR = "shadowsocksr"
 	TypeVLESS        = "vless"
+	TypeTUIC         = "tuic"
+	TypeHysteria2    = "hysteria2"
 )
 
 const (
@@ -62,6 +64,10 @@ func ProxyDisplayName(proxyType string) string {
 		return "ShadowsocksR"
 	case TypeVLESS:
 		return "VLESS"
+	case TypeTUIC:
+		return "TUIC"
+	case TypeHysteria2:
+		return "Hysteria2"
 	case TypeSelector:
 		return "Selector"
 	case TypeURLTest:

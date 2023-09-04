@@ -7,12 +7,13 @@ import (
 	"crypto/tls"
 	"net"
 	"os"
+	"strings"
 
 	JLS "github.com/JimmyHuang454/JLS-go/tls"
-	"github.com/sagernet/sing-box/adapter"
 	"github.com/sagernet/sing-box/log"
 	"github.com/sagernet/sing-box/option"
 	E "github.com/sagernet/sing/common/exceptions"
+	"github.com/sagernet/sing/common/ntp"
 )
 
 type JLSServerConfig struct {
@@ -64,9 +65,9 @@ func (c *JLSServerConfig) Close() error {
 	return nil
 }
 
-func NewJLSServer(ctx context.Context, router adapter.Router, logger log.Logger, options option.InboundTLSOptions) (ServerConfig, error) {
+func NewJLSServer(ctx context.Context, logger log.Logger, options option.InboundTLSOptions) (ServerConfig, error) {
 	tlsConfig := &JLS.Config{}
-	tlsConfig.Time = router.TimeFunc()
+	tlsConfig.Time = ntp.TimeFuncFromContext(ctx)
 
 	if options.ServerName == "" {
 		return nil, E.New("fallback website is needed.")
@@ -92,8 +93,8 @@ func NewJLSServer(ctx context.Context, router adapter.Router, logger log.Logger,
 
 	var certificate []byte
 	var key []byte
-	if options.Certificate != "" {
-		certificate = []byte(options.Certificate)
+	if len(options.Certificate) > 0 {
+		certificate = []byte(strings.Join(options.Certificate, "\n"))
 	} else if options.CertificatePath != "" {
 		content, err := os.ReadFile(options.CertificatePath)
 		if err != nil {
@@ -101,8 +102,8 @@ func NewJLSServer(ctx context.Context, router adapter.Router, logger log.Logger,
 		}
 		certificate = content
 	}
-	if options.Key != "" {
-		key = []byte(options.Key)
+	if len(options.Key) > 0 {
+		key = []byte(strings.Join(options.Key, "\n"))
 	} else if options.KeyPath != "" {
 		content, err := os.ReadFile(options.KeyPath)
 		if err != nil {
