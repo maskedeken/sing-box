@@ -201,7 +201,6 @@ func (s *serverSession) handle() {
 	go s.loopStreams()
 	go s.loopMessages()
 	go s.handleAuthTimeout()
-	go s.loopHeartbeats()
 }
 
 func (s *serverSession) loopUniStreams() {
@@ -372,22 +371,6 @@ func (s *serverSession) handleStream(stream quic.Stream) error {
 		Destination: destination,
 	})
 	return nil
-}
-
-func (s *serverSession) loopHeartbeats() {
-	ticker := time.NewTicker(s.heartbeat)
-	defer ticker.Stop()
-	for {
-		select {
-		case <-s.connDone:
-			return
-		case <-ticker.C:
-			err := s.quicConn.SendMessage([]byte{Version, CommandHeartbeat})
-			if err != nil {
-				s.closeWithError(E.Cause(err, "send heartbeat"))
-			}
-		}
-	}
 }
 
 func (s *serverSession) closeWithError(err error) {
