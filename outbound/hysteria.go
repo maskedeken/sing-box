@@ -14,6 +14,7 @@ import (
 	"github.com/sagernet/quic-go/congestion"
 	"github.com/sagernet/sing-box/adapter"
 	"github.com/sagernet/sing-box/common/dialer"
+	"github.com/sagernet/sing-box/common/qtls"
 	"github.com/sagernet/sing-box/common/tls"
 	C "github.com/sagernet/sing-box/constant"
 	"github.com/sagernet/sing-box/log"
@@ -39,7 +40,7 @@ type Hysteria struct {
 	serverAddr   M.Socksaddr
 	hopPorts     string
 	hopInterval  time.Duration
-	tlsConfig    *tls.STDConfig
+	tlsConfig    tls.Config
 	quicConfig   *quic.Config
 	authKey      []byte
 	xplusKey     []byte
@@ -58,17 +59,12 @@ func NewHysteria(ctx context.Context, router adapter.Router, logger log.ContextL
 	if options.TLS == nil || !options.TLS.Enabled {
 		return nil, C.ErrTLSRequired
 	}
-	abstractTLSConfig, err := tls.NewClient(router, options.Server, common.PtrValueOrDefault(options.TLS))
+	tlsConfig, err := tls.NewClient(ctx, options.Server, common.PtrValueOrDefault(options.TLS))
 	if err != nil {
 		return nil, err
 	}
-	tlsConfig, err := abstractTLSConfig.Config()
-	if err != nil {
-		return nil, err
-	}
-	tlsConfig.MinVersion = tls.VersionTLS13
-	if len(tlsConfig.NextProtos) == 0 {
-		tlsConfig.NextProtos = []string{hysteria.DefaultALPN}
+	if len(tlsConfig.NextProtos()) == 0 {
+		tlsConfig.SetNextProtos([]string{hysteria.DefaultALPN})
 	}
 	quicConfig := &quic.Config{
 		InitialStreamReceiveWindow:     options.ReceiveWindowConn,
@@ -230,7 +226,7 @@ func (h *Hysteria) offerNew(ctx context.Context) (quic.Connection, error) {
 		packetConn = &hysteria.PacketConnWrapper{PacketConn: packetConn}
 	}
 	//
-	quicConn, err := quic.Dial(h.ctx, packetConn, addr, h.tlsConfig, h.quicConfig)
+	quicConn, err := qtls.Dial(h.ctx, packetConn, addr, h.tlsConfig, h.quicConfig)
 	if err != nil {
 		packetConn.Close()
 		return nil, err
