@@ -77,8 +77,13 @@ func (s *JLSClientConfig) ClientHandshake(ctx context.Context, conn net.Conn) (a
 	}
 
 	hello := uConn.HandshakeState.Hello
+	bindersLen := 2 // uint16 length prefix
+	for _, binder := range hello.PskBinders {
+		bindersLen += 1 // uint8 length prefix
+		bindersLen += len(binder)
+	}
 	setZero(hello.Raw[6 : 6+32])
-	s.fillFakeRandom(hello.Raw, hello.Random[:0])
+	s.fillFakeRandom(hello.Raw[0:len(hello.Raw)-bindersLen], hello.Random[:0])
 	copy(hello.Raw[6:], hello.Random)
 
 	err = uConn.HandshakeContext(ctx)
