@@ -13,7 +13,6 @@ import (
 	"github.com/sagernet/sing/common"
 	"github.com/sagernet/sing/common/buf"
 	E "github.com/sagernet/sing/common/exceptions"
-	M "github.com/sagernet/sing/common/metadata"
 	"github.com/sagernet/websocket"
 )
 
@@ -152,10 +151,10 @@ func (c *EarlyWebsocketConn) Write(b []byte) (n int, err error) {
 	}
 	err = c.writeRequest(b)
 	c.err = err
-	close(c.create)
 	if err != nil {
 		return
 	}
+	close(c.create)
 	return len(b), nil
 }
 
@@ -165,7 +164,9 @@ func (c *EarlyWebsocketConn) WriteBuffer(buffer *buf.Buffer) error {
 	}
 	err := c.writeRequest(buffer.Bytes())
 	c.err = err
-	close(c.create)
+	if err == nil {
+		close(c.create)
+	}
 	return err
 }
 
@@ -178,14 +179,14 @@ func (c *EarlyWebsocketConn) Close() error {
 
 func (c *EarlyWebsocketConn) LocalAddr() net.Addr {
 	if c.conn == nil {
-		return M.Socksaddr{}
+		return nil
 	}
 	return c.conn.LocalAddr()
 }
 
 func (c *EarlyWebsocketConn) RemoteAddr() net.Addr {
 	if c.conn == nil {
-		return M.Socksaddr{}
+		return nil
 	}
 	return c.conn.RemoteAddr()
 }
