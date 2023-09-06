@@ -151,10 +151,10 @@ func (c *EarlyWebsocketConn) Write(b []byte) (n int, err error) {
 	}
 	err = c.writeRequest(b)
 	c.err = err
-	close(c.create)
 	if err != nil {
 		return
 	}
+	close(c.create)
 	return len(b), nil
 }
 
@@ -164,7 +164,9 @@ func (c *EarlyWebsocketConn) WriteBuffer(buffer *buf.Buffer) error {
 	}
 	err := c.writeRequest(buffer.Bytes())
 	c.err = err
-	close(c.create)
+	if err == nil {
+		close(c.create)
+	}
 	return err
 }
 
