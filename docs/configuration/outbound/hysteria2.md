@@ -21,6 +21,10 @@
 }
 ```
 
+!!! warning "Compatibility issues with the official server"
+
+    The use case of UDP MTU >= 1200 is not supported when using the official server.
+
 !!! warning ""
 
     QUIC, which is required by Hysteria2 is not included by default, see [Installation](/#installation).
