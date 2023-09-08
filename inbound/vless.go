@@ -12,7 +12,7 @@ import (
 	"github.com/sagernet/sing-box/option"
 	"github.com/sagernet/sing-box/transport/v2ray"
 	"github.com/sagernet/sing-box/transport/vless"
-	"github.com/sagernet/sing-vmess"
+	vmess "github.com/sagernet/sing-vmess"
 	"github.com/sagernet/sing-vmess/packetaddr"
 	"github.com/sagernet/sing/common"
 	"github.com/sagernet/sing/common/auth"
@@ -52,6 +52,13 @@ func NewVLESS(ctx context.Context, router adapter.Router, logger log.ContextLogg
 		ctx:   ctx,
 		users: options.Users,
 	}
+	var err error
+	if options.TLS != nil {
+		inbound.tlsConfig, err = tls.NewServer(ctx, logger, common.PtrValueOrDefault(options.TLS))
+		if err != nil {
+			return nil, err
+		}
+	}
 	var fallbackHandler N.TCPConnectionHandler
 	if options.Fallback != nil && options.Fallback.Server != "" || len(options.FallbackForALPN) > 0 {
 		if options.Fallback != nil && options.Fallback.Server != "" {
@@ -85,13 +92,6 @@ func NewVLESS(ctx context.Context, router adapter.Router, logger log.ContextLogg
 		return it.Flow
 	}))
 	inbound.service = service
-	var err error
-	if options.TLS != nil {
-		inbound.tlsConfig, err = tls.NewServer(ctx, logger, common.PtrValueOrDefault(options.TLS))
-		if err != nil {
-			return nil, err
-		}
-	}
 	if options.Transport != nil {
 		inbound.transport, err = v2ray.NewServerTransport(ctx, common.PtrValueOrDefault(options.Transport), inbound.tlsConfig, (*vlessTransportHandler)(inbound))
 		if err != nil {
