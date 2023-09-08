@@ -52,13 +52,6 @@ func NewVLESS(ctx context.Context, router adapter.Router, logger log.ContextLogg
 		ctx:   ctx,
 		users: options.Users,
 	}
-	var err error
-	if options.TLS != nil {
-		inbound.tlsConfig, err = tls.NewServer(ctx, logger, common.PtrValueOrDefault(options.TLS))
-		if err != nil {
-			return nil, err
-		}
-	}
 	var fallbackHandler N.TCPConnectionHandler
 	if options.Fallback != nil && options.Fallback.Server != "" || len(options.FallbackForALPN) > 0 {
 		if options.Fallback != nil && options.Fallback.Server != "" {
@@ -91,13 +84,20 @@ func NewVLESS(ctx context.Context, router adapter.Router, logger log.ContextLogg
 	}), common.Map(inbound.users, func(it option.VLESSUser) string {
 		return it.Flow
 	}))
+	inbound.service = service
+	var err error
+	if options.TLS != nil {
+		inbound.tlsConfig, err = tls.NewServer(ctx, logger, common.PtrValueOrDefault(options.TLS))
+		if err != nil {
+			return nil, err
+		}
+	}
 	if options.Transport != nil {
 		inbound.transport, err = v2ray.NewServerTransport(ctx, common.PtrValueOrDefault(options.Transport), inbound.tlsConfig, (*vlessTransportHandler)(inbound))
 		if err != nil {
 			return nil, E.Cause(err, "create server transport: ", options.Transport.Type)
 		}
 	}
-	inbound.service = service
 	inbound.connHandler = inbound
 	return inbound, nil
 }
