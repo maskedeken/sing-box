@@ -378,7 +378,7 @@ func testLargeDataWithPacketConnSize(t *testing.T, port uint16, chunkSize int, p
 
 	rAddr := &net.UDPAddr{IP: localIP.AsSlice(), Port: int(port)}
 
-	times := 2
+	times := 50
 
 	pingCh, pongCh, test := newLargeDataPair()
 	writeRandData := func(pc net.PacketConn, addr net.Addr) (map[int][]byte, error) {
