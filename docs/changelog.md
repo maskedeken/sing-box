@@ -1,3 +1,9 @@
+#### 1.5.0-beta.6
+
+* Fix compatibility issues with official Hysteria2 server and client
+* Fixes and improvements
+* Mark [deprecated features](/deprecated)
+
 #### 1.5.0-beta.5
 
 * Fixes and improvements
