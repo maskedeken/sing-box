@@ -17,6 +17,7 @@ import (
 	"github.com/sagernet/sing-box/transport/hysteria2/congestion"
 	"github.com/sagernet/sing-box/transport/hysteria2/internal/protocol"
 	tuicCongestion "github.com/sagernet/sing-box/transport/tuic/congestion"
+	"github.com/sagernet/sing/common/baderror"
 	"github.com/sagernet/sing/common/bufio"
 	E "github.com/sagernet/sing/common/exceptions"
 	M "github.com/sagernet/sing/common/metadata"
@@ -61,7 +62,6 @@ type Client struct {
 func NewClient(options ClientOptions) (*Client, error) {
 	quicConfig := &quic.Config{
 		DisablePathMTUDiscovery:        !(runtime.GOOS == "windows" || runtime.GOOS == "linux" || runtime.GOOS == "android" || runtime.GOOS == "darwin"),
-		MaxDatagramFrameSize:           1400,
 		EnableDatagrams:                true,
 		InitialStreamReceiveWindow:     defaultStreamReceiveWindow,
 		MaxStreamReceiveWindow:         defaultStreamReceiveWindow,
@@ -103,7 +103,7 @@ func (c *Client) offer(ctx context.Context) (*clientQUICConnection, error) {
 }
 
 func (c *Client) offerNew(ctx context.Context) (*clientQUICConnection, error) {
-	udpConn, err := c.dialer.DialContext(ctx, "udp", c.serverAddr)
+	udpConn, err := c.dialer.DialContext(c.ctx, "udp", c.serverAddr)
 	if err != nil {
 		return nil, err
 	}
@@ -128,7 +128,7 @@ func (c *Client) offerNew(ctx context.Context) (*clientQUICConnection, error) {
 		Header: make(http.Header),
 	}
 	protocol.AuthRequestToHeader(request.Header, protocol.AuthRequest{Auth: c.password, Rx: c.receiveBPS})
-	response, err := http3Transport.RoundTrip(request)
+	response, err := http3Transport.RoundTrip(request.WithContext(ctx))
 	if err != nil {
 		if quicConn != nil {
 			quicConn.CloseWithError(0, "")
@@ -269,18 +269,20 @@ func (c *clientConn) NeedHandshake() bool {
 
 func (c *clientConn) Read(p []byte) (n int, err error) {
 	if c.responseRead {
-		return c.Stream.Read(p)
+		n, err = c.Stream.Read(p)
+		return n, baderror.WrapQUIC(err)
 	}
 	status, errorMessage, err := protocol.ReadTCPResponse(c.Stream)
 	if err != nil {
-		return
+		return 0, baderror.WrapQUIC(err)
 	}
 	if !status {
 		err = E.New("remote error: ", errorMessage)
 		return
 	}
 	c.responseRead = true
-	return c.Stream.Read(p)
+	n, err = c.Stream.Read(p)
+	return n, baderror.WrapQUIC(err)
 }
 
 func (c *clientConn) Write(p []byte) (n int, err error) {
@@ -294,7 +296,8 @@ func (c *clientConn) Write(p []byte) (n int, err error) {
 		c.requestWritten = true
 		return len(p), nil
 	}
-	return c.Stream.Write(p)
+	n, err = c.Stream.Write(p)
+	return n, baderror.WrapQUIC(err)
 }
 
 func (c *clientConn) LocalAddr() net.Addr {
@@ -303,4 +306,9 @@ func (c *clientConn) LocalAddr() net.Addr {
 
 func (c *clientConn) RemoteAddr() net.Addr {
 	return M.Socksaddr{}
+}
+
+func (c *clientConn) Close() error {
+	c.Stream.CancelRead(0)
+	return c.Stream.Close()
 }
