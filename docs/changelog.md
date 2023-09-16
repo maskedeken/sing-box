@@ -1,3 +1,18 @@
+#### 1.5.0-beta.10
+
+* Add `interrupt_exist_connections` option for `Selector` and `URLTest` outbounds **1**
+* Fixes and improvements
+
+**1**:
+
+Interrupt existing connections when the selected outbound has changed.
+
+Only inbound connections are affected by this setting, internal connections will always be interrupted.
+
+#### 1.4.3
+
+* Fixes and improvements
+
 #### 1.5.0-beta.8
 
 * Fixes and improvements
