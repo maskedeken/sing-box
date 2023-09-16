@@ -106,8 +106,8 @@ github.com/sagernet/cloudflare-tls v0.0.0-20230829051644-4a68352d0c4a h1:wZHruBx
 github.com/sagernet/cloudflare-tls v0.0.0-20230829051644-4a68352d0c4a/go.mod h1:dNV1ZP9y3qx5ltULeKaQZTZWTLHflgW5DES+Ses7cMI=
 github.com/sagernet/go-tun2socks v1.16.12-0.20220818015926-16cb67876a61 h1:5+m7c6AkmAylhauulqN/c5dnh8/KssrE9c93TQrXldA=
 github.com/sagernet/go-tun2socks v1.16.12-0.20220818015926-16cb67876a61/go.mod h1:QUQ4RRHD6hGGHdFMEtR8T2P6GS6R3D/CXKdaYHKKXms=
-github.com/sagernet/gomobile v0.0.0-20230728014906-3de089147f59 h1:vN4divY6LYHcYmiTsCHNPmGZtEsEKJzh81LyvgAQfEQ=
-github.com/sagernet/gomobile v0.0.0-20230728014906-3de089147f59/go.mod h1:5YE39YkJkCcMsfq1jMKkjsrM2GfBoF9JVWnvU89hmvU=
+github.com/sagernet/gomobile v0.0.0-20230915142329-c6740b6d2950 h1:hUz/2mJLgi7l2H36JGpDY+jou9FmI6kAm0ZkU+xPpgE=
+github.com/sagernet/gomobile v0.0.0-20230915142329-c6740b6d2950/go.mod h1:5YE39YkJkCcMsfq1jMKkjsrM2GfBoF9JVWnvU89hmvU=
 github.com/sagernet/gvisor v0.0.0-20230627031050-1ab0276e0dd2 h1:dnkKrzapqtAwjTSWt6hdPrARORfoYvuUczynvRLrueo=
 github.com/sagernet/gvisor v0.0.0-20230627031050-1ab0276e0dd2/go.mod h1:1JUiV7nGuf++YFm9eWZ8q2lrwHmhcUGzptMl/vL1+LA=
 github.com/sagernet/netlink v0.0.0-20220905062125-8043b4a9aa97 h1:iL5gZI3uFp0X6EslacyapiRz7LLSJyr4RajF/BhMVyE=
@@ -124,6 +124,8 @@ github.com/sagernet/sing-dns v0.1.9-0.20230911082806-425022bdc92b h1:m/UWg2voyb9
 github.com/sagernet/sing-dns v0.1.9-0.20230911082806-425022bdc92b/go.mod h1:Kg98PBJEg/08jsNFtmZWmPomhskn9Ausn50ecNm4M+8=
 github.com/sagernet/sing-mux v0.1.3-0.20230908032617-759a1886a400 h1:LtpYd5c5AJtUSxjyH4KjUS8HT+2XgilyozjbCq/x3EM=
 github.com/sagernet/sing-mux v0.1.3-0.20230908032617-759a1886a400/go.mod h1:TKxqIvfQQgd36jp2tzsPavGjYTVZilV+atip1cssjIY=
+github.com/sagernet/sing-quic v0.0.0-20230915093242-b55f3531e703 h1:BbJZ5RkY3jQk5P9G5Ra0VhmDNKdT0aIP1FszEDyQL+o=
+github.com/sagernet/sing-quic v0.0.0-20230915093242-b55f3531e703/go.mod h1:Mh5Senu4XDuX+RxSPQEoUB0j6kVmGais2h62Cnfj6Xk=
 github.com/sagernet/sing-shadowsocks v0.2.5-0.20230907005610-126234728ca0 h1:9wHYWxH+fcs01PM2+DylA8LNNY3ElnZykQo9rysng8U=
 github.com/sagernet/sing-shadowsocks v0.2.5-0.20230907005610-126234728ca0/go.mod h1:80fNKP0wnqlu85GZXV1H1vDPC/2t+dQbFggOw4XuFUM=
 github.com/sagernet/sing-tun v0.1.12-0.20230821065522-7545dc2d5641 h1:a8lktNrCWZJisB+nPraW+qB73ZofgPtGmlfqNYcO79g=
