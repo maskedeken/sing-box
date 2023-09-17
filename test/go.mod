@@ -6,11 +6,14 @@ require github.com/sagernet/sing-box v0.0.0
 
 replace github.com/sagernet/sing-box => ../
 
+replace github.com/sagernet/sing-quic => ../../sing-quic
+
 require (
 	github.com/docker/docker v24.0.5+incompatible
 	github.com/docker/go-connections v0.4.0
 	github.com/gofrs/uuid/v5 v5.0.0
-	github.com/sagernet/sing v0.2.10-0.20230912051334-9163f4486b0d
+	github.com/sagernet/sing v0.2.10-0.20230912050851-1453c7c8c20d
+	github.com/sagernet/sing-quic v0.0.0-20230915093242-b55f3531e703
 	github.com/sagernet/sing-shadowsocks v0.2.5-0.20230907005610-126234728ca0
 	github.com/sagernet/sing-shadowsocks2 v0.1.4-0.20230907005906-5d2917b29248
 	github.com/spyzhov/ajson v0.9.0
@@ -48,6 +51,8 @@ require (
 	github.com/josharian/native v1.1.0 // indirect
 	github.com/klauspost/compress v1.15.15 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.5 // indirect
+	github.com/libdns/alidns v1.0.3 // indirect
+	github.com/libdns/cloudflare v0.1.0 // indirect
 	github.com/libdns/libdns v0.2.1 // indirect
 	github.com/logrusorgru/aurora v2.0.3+incompatible // indirect
 	github.com/mholt/acmez v1.2.0 // indirect
