@@ -28,7 +28,7 @@ ci_build:
 	go build $(MAIN_PARAMS) $(MAIN)
 
 install:
-	go build -o $(PREFIX)/bin/$(NAME) $(PARAMS) $(MAIN)
+	go build -o $(PREFIX)/bin/$(NAME) $(MAIN_PARAMS) $(MAIN)
 
 fmt:
 	@gofumpt -l -w .
@@ -73,7 +73,7 @@ update_android_version:
 	go run ./cmd/internal/update_android_version
 
 build_android:
-	cd ../sing-box-for-android && ./gradlew :app:assembleRelease
+	cd ../sing-box-for-android && ./gradlew :app:assembleRelease && ./gradlew --stop
 
 upload_android:
 	mkdir -p dist/release_android
