@@ -12,8 +12,8 @@ import (
 	"time"
 
 	"github.com/sagernet/sing-box/adapter"
+	"github.com/sagernet/sing-box/common/conntrack"
 	"github.com/sagernet/sing-box/common/dialer"
-	"github.com/sagernet/sing-box/common/dialer/conntrack"
 	"github.com/sagernet/sing-box/common/geoip"
 	"github.com/sagernet/sing-box/common/geosite"
 	"github.com/sagernet/sing-box/common/mux"
@@ -578,6 +578,8 @@ func (r *Router) FakeIPStore() adapter.FakeIPStore {
 }
 
 func (r *Router) RouteConnection(ctx context.Context, conn net.Conn, metadata adapter.InboundContext) error {
+	defer func(c *net.Conn) { common.Close(*c) }(&conn)
+
 	if metadata.InboundDetour != "" {
 		if metadata.LastInbound == metadata.InboundDetour {
 			return E.New("routing loop on detour: ", metadata.InboundDetour)
@@ -602,6 +604,7 @@ func (r *Router) RouteConnection(ctx context.Context, conn net.Conn, metadata ad
 		}
 		return nil
 	}
+	conntrack.KillerCheck()
 	metadata.Network = N.NetworkTCP
 	switch metadata.Destination.Fqdn {
 	case mux.Destination.Fqdn:
@@ -714,6 +717,8 @@ func (r *Router) RouteConnection(ctx context.Context, conn net.Conn, metadata ad
 }
 
 func (r *Router) RoutePacketConnection(ctx context.Context, conn N.PacketConn, metadata adapter.InboundContext) error {
+	defer func(c *N.PacketConn) { common.Close(*c) }(&conn)
+
 	if metadata.InboundDetour != "" {
 		if metadata.LastInbound == metadata.InboundDetour {
 			return E.New("routing loop on detour: ", metadata.InboundDetour)
@@ -738,6 +743,7 @@ func (r *Router) RoutePacketConnection(ctx context.Context, conn N.PacketConn, m
 		}
 		return nil
 	}
+	conntrack.KillerCheck()
 	metadata.Network = N.NetworkUDP
 
 	if r.fakeIPStore != nil && r.fakeIPStore.Contains(metadata.Destination.Addr) {
@@ -915,13 +921,21 @@ func (r *Router) AutoDetectInterfaceFunc() control.Func {
 	if r.platformInterface != nil && r.platformInterface.UsePlatformAutoDetectInterfaceControl() {
 		return r.platformInterface.AutoDetectInterfaceControl()
 	} else {
-		return control.BindToInterfaceFunc(r.InterfaceFinder(), func(network string, address string) (interfaceName string, interfaceIndex int) {
+		return control.BindToInterfaceFunc(r.InterfaceFinder(), func(network string, address string) (interfaceName string, interfaceIndex int, err error) {
 			remoteAddr := M.ParseSocksaddr(address).Addr
 			if C.IsLinux {
-				return r.InterfaceMonitor().DefaultInterfaceName(remoteAddr), -1
+				interfaceName = r.InterfaceMonitor().DefaultInterfaceName(remoteAddr)
+				interfaceIndex = -1
+				if interfaceName == "" {
+					err = tun.ErrNoRoute
+				}
 			} else {
-				return "", r.InterfaceMonitor().DefaultInterfaceIndex(remoteAddr)
+				interfaceIndex = r.InterfaceMonitor().DefaultInterfaceIndex(remoteAddr)
+				if interfaceIndex == -1 {
+					err = tun.ErrNoRoute
+				}
 			}
+			return
 		})
 	}
 }

@@ -49,7 +49,8 @@ func (h *Block) NewConnection(ctx context.Context, conn net.Conn, metadata adapt
 
 func (h *Block) NewPacketConnection(ctx context.Context, conn N.PacketConn, metadata adapter.InboundContext) error {
 	h.logger.InfoContext(ctx, "blocked new packet connection to ", metadata.Destination)
-	buffer := buf.NewSize(65535)
+	buffer := buf.NewPacket()
+	buffer.FullReset()
 	defer buffer.Release()
 	for {
 		conn.SetReadDeadline(time.Now().Add(C.QUICTimeout))

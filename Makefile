@@ -28,7 +28,7 @@ ci_build:
 	go build $(MAIN_PARAMS) $(MAIN)
 
 install:
-	go build -o $(PREFIX)/bin/$(NAME) $(PARAMS) $(MAIN)
+	go build -o $(PREFIX)/bin/$(NAME) $(MAIN_PARAMS) $(MAIN)
 
 fmt:
 	@gofumpt -l -w .
@@ -73,7 +73,7 @@ update_android_version:
 	go run ./cmd/internal/update_android_version
 
 build_android:
-	cd ../sing-box-for-android && ./gradlew :app:assembleRelease
+	cd ../sing-box-for-android && ./gradlew :app:assembleRelease && ./gradlew --stop
 
 upload_android:
 	mkdir -p dist/release_android
@@ -137,7 +137,6 @@ release_macos_independent: build_macos_independent notarize_macos_independent wa
 build_tvos:
 	cd ../sing-box-for-apple && \
 	rm -rf build/SFT.xcarchive && \
-	export DEVELOPER_DIR=/Applications/Xcode-beta.app/Contents/Developer && \
 	xcodebuild archive -scheme SFT -configuration Release -archivePath build/SFT.xcarchive
 
 upload_tvos_app_store:
@@ -179,8 +178,8 @@ lib:
 
 lib_install:
 	go get -v -d
-	go install -v github.com/sagernet/gomobile/cmd/gomobile@v0.0.0-20230728014906-3de089147f59
-	go install -v github.com/sagernet/gomobile/cmd/gobind@v0.0.0-20230728014906-3de089147f59
+	go install -v github.com/sagernet/gomobile/cmd/gomobile@v0.0.0-20230915142329-c6740b6d2950
+	go install -v github.com/sagernet/gomobile/cmd/gobind@v0.0.0-20230915142329-c6740b6d2950
 
 clean:
 	rm -rf bin dist sing-box

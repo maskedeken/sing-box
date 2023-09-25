@@ -176,11 +176,15 @@ func NewDirectPacketConnection(ctx context.Context, router adapter.Router, this 
 func CopyEarlyConn(ctx context.Context, conn net.Conn, serverConn net.Conn) error {
 	if cachedReader, isCached := conn.(N.CachedReader); isCached {
 		payload := cachedReader.ReadCached()
-		if payload != nil && !payload.IsEmpty() {
-			_, err := serverConn.Write(payload.Bytes())
-			if err != nil {
-				return err
+		if payload != nil {
+			if !payload.IsEmpty() {
+				_, err := serverConn.Write(payload.Bytes())
+				if err != nil {
+					payload.Release()
+					return err
+				}
 			}
+			payload.Release()
 			return bufio.CopyConn(ctx, conn, serverConn)
 		}
 	}
@@ -193,6 +197,7 @@ func CopyEarlyConn(ctx context.Context, conn net.Conn, serverConn net.Conn) erro
 			}
 			_, err = payload.ReadOnceFrom(conn)
 			if err != nil && !E.IsTimeout(err) {
+				payload.Release()
 				return E.Cause(err, "read payload")
 			}
 			err = conn.SetReadDeadline(time.Time{})
@@ -203,6 +208,7 @@ func CopyEarlyConn(ctx context.Context, conn net.Conn, serverConn net.Conn) erro
 		}
 		_, err = serverConn.Write(payload.Bytes())
 		if err != nil {
+			payload.Release()
 			return N.ReportHandshakeFailure(conn, err)
 		}
 		payload.Release()

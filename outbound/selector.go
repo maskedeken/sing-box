@@ -5,6 +5,7 @@ import (
 	"net"
 
 	"github.com/sagernet/sing-box/adapter"
+	"github.com/sagernet/sing-box/common/interrupt"
 	C "github.com/sagernet/sing-box/constant"
 	"github.com/sagernet/sing-box/log"
 	"github.com/sagernet/sing-box/nekoutils"
@@ -21,10 +22,12 @@ var (
 
 type Selector struct {
 	myOutboundAdapter
-	tags       []string
-	defaultTag string
-	outbounds  map[string]adapter.Outbound
-	selected   adapter.Outbound
+	tags                         []string
+	defaultTag                   string
+	outbounds                    map[string]adapter.Outbound
+	selected                     adapter.Outbound
+	interruptGroup               *interrupt.Group
+	interruptExternalConnections bool
 }
 
 func NewSelector(router adapter.Router, logger log.ContextLogger, tag string, options option.SelectorOutboundOptions) (*Selector, error) {
@@ -36,9 +39,11 @@ func NewSelector(router adapter.Router, logger log.ContextLogger, tag string, op
 			tag:          tag,
 			dependencies: options.Outbounds,
 		},
-		tags:       options.Outbounds,
-		defaultTag: options.Default,
-		outbounds:  make(map[string]adapter.Outbound),
+		tags:                         options.Outbounds,
+		defaultTag:                   options.Default,
+		outbounds:                    make(map[string]adapter.Outbound),
+		interruptGroup:               interrupt.NewGroup(),
+		interruptExternalConnections: options.InterruptExistConnections,
 	}
 	if len(outbound.tags) == 0 {
 		return nil, E.New("missing tags")
@@ -101,6 +106,9 @@ func (s *Selector) SelectOutbound(tag string) bool {
 	if !loaded {
 		return false
 	}
+	if s.selected == detour {
+		return true
+	}
 	s.selected = detour
 	if s.tag != "" {
 		if clashServer := s.router.ClashServer(); clashServer != nil && clashServer.StoreSelected() {
@@ -110,6 +118,7 @@ func (s *Selector) SelectOutbound(tag string) bool {
 			}
 		}
 	}
+	s.interruptGroup.Interrupt(s.interruptExternalConnections)
 	if nekoutils.Selector_OnProxySelected != nil {
 		nekoutils.Selector_OnProxySelected(s.tag, tag)
 	}
@@ -117,18 +126,28 @@ func (s *Selector) SelectOutbound(tag string) bool {
 }
 
 func (s *Selector) DialContext(ctx context.Context, network string, destination M.Socksaddr) (net.Conn, error) {
-	return s.selected.DialContext(ctx, network, destination)
+	conn, err := s.selected.DialContext(ctx, network, destination)
+	if err != nil {
+		return nil, err
+	}
+	return s.interruptGroup.NewConn(conn, interrupt.IsExternalConnectionFromContext(ctx)), nil
 }
 
 func (s *Selector) ListenPacket(ctx context.Context, destination M.Socksaddr) (net.PacketConn, error) {
-	return s.selected.ListenPacket(ctx, destination)
+	conn, err := s.selected.ListenPacket(ctx, destination)
+	if err != nil {
+		return nil, err
+	}
+	return s.interruptGroup.NewPacketConn(conn, interrupt.IsExternalConnectionFromContext(ctx)), nil
 }
 
 func (s *Selector) NewConnection(ctx context.Context, conn net.Conn, metadata adapter.InboundContext) error {
+	ctx = interrupt.ContextWithIsExternalConnection(ctx)
 	return s.selected.NewConnection(ctx, conn, metadata)
 }
 
 func (s *Selector) NewPacketConnection(ctx context.Context, conn N.PacketConn, metadata adapter.InboundContext) error {
+	ctx = interrupt.ContextWithIsExternalConnection(ctx)
 	return s.selected.NewPacketConnection(ctx, conn, metadata)
 }
 
