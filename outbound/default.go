@@ -193,6 +193,7 @@ func CopyEarlyConn(ctx context.Context, conn net.Conn, serverConn net.Conn) erro
 		err := conn.SetReadDeadline(time.Now().Add(C.ReadPayloadTimeout))
 		if err != os.ErrInvalid {
 			if err != nil {
+				payload.Release()
 				return err
 			}
 			_, err = payload.ReadOnceFrom(conn)
@@ -207,11 +208,10 @@ func CopyEarlyConn(ctx context.Context, conn net.Conn, serverConn net.Conn) erro
 			}
 		}
 		_, err = serverConn.Write(payload.Bytes())
+		payload.Release()
 		if err != nil {
-			payload.Release()
 			return N.ReportHandshakeFailure(conn, err)
 		}
-		payload.Release()
 	}
 	return bufio.CopyConn(ctx, conn, serverConn)
 }
