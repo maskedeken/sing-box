@@ -1,3 +1,11 @@
+#### 1.6.0-alpha.2
+
+* Fixes and improvements
+
+#### 1.5.1
+
+* Fixes and improvements
+
 #### 1.6.0-alpha.1
 
 * Update BBR congestion control for TUIC and Hysteria2 **1**
