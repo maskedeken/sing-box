@@ -1,3 +1,8 @@
+#### 1.5.2
+
+* Our [Apple tvOS client](/installation/clients/sft) is now available in the App Store 🍎
+* Fixes and improvements
+
 #### 1.5.1
 
 * Fixes and improvements
