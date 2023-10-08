@@ -23,12 +23,12 @@ require (
 	github.com/sagernet/cloudflare-tls v0.0.0-20230829051644-4a68352d0c4a
 	github.com/sagernet/gomobile v0.0.0-20230915142329-c6740b6d2950
 	github.com/sagernet/gvisor v0.0.0-20230930141345-5fef6f2e17ab
-	github.com/sagernet/quic-go v0.0.0-20231001051131-0fc736a289bb
+	github.com/sagernet/quic-go v0.0.0-20231008035953-32727fef9460
 	github.com/sagernet/reality v0.0.0-20230406110435-ee17307e7691
-	github.com/sagernet/sing v0.2.14-0.20231006114104-b68485f62e9d
+	github.com/sagernet/sing v0.2.14-0.20231008040725-e690cb9a7ad2
 	github.com/sagernet/sing-dns v0.1.10
 	github.com/sagernet/sing-mux v0.1.3
-	github.com/sagernet/sing-quic v0.1.3-0.20231006113617-1ea488a34257
+	github.com/sagernet/sing-quic v0.1.3-0.20231008043106-a107947d1ed5
 	github.com/sagernet/sing-shadowsocks v0.2.5
 	github.com/sagernet/sing-shadowsocks2 v0.1.4
 	github.com/sagernet/sing-shadowtls v0.1.4
@@ -59,7 +59,7 @@ replace github.com/sagernet/sing-shadowtls => github.com/maskedeken/sing-shadowt
 
 replace github.com/sagernet/sing-shadowsocks2 => github.com/maskedeken/sing-shadowsocks2 v0.0.0-20230921074929-16e592206f4f
 
-replace github.com/sagernet/sing-quic => github.com/maskedeken/sing-quic v0.0.0-20231008023515-adaa9ed29f87
+replace github.com/sagernet/sing-quic => github.com/maskedeken/sing-quic v0.0.0-20231008081944-5c29a90dcbe3
 
 require (
 	github.com/ajg/form v1.5.1 // indirect
