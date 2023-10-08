@@ -1,3 +1,7 @@
+#### 1.6.0-alpha.3
+
+* Fixes and improvements
+
 #### 1.6.0-alpha.2
 
 * Fixes and improvements
