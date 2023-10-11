@@ -1,11 +1,12 @@
 package option
 
 import (
+	"net/http"
 	"net/netip"
 	"time"
 
 	"github.com/sagernet/sing-box/common/json"
-	dns "github.com/sagernet/sing-dns"
+	"github.com/sagernet/sing-dns"
 	E "github.com/sagernet/sing/common/exceptions"
 	F "github.com/sagernet/sing/common/format"
 	N "github.com/sagernet/sing/common/network"
@@ -239,4 +240,16 @@ func DNSQueryTypeToString(queryType uint16) string {
 		return typeName
 	}
 	return F.ToString(queryType)
+}
+
+type HTTPHeader map[string]Listable[string]
+
+func (h HTTPHeader) Build() http.Header {
+	header := make(http.Header)
+	for name, values := range h {
+		for _, value := range values {
+			header.Add(name, value)
+		}
+	}
+	return header
 }
