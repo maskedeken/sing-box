@@ -1,3 +1,7 @@
+#### 1.6.0-beta.1
+
+* Fixes and improvements
+
 #### 1.6.0-alpha.5
 
 * Fix compatibility with Android 14
