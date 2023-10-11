@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/sagernet/sing-box/common/json"
-	"github.com/sagernet/sing-dns"
+	dns "github.com/sagernet/sing-dns"
 	E "github.com/sagernet/sing/common/exceptions"
 	F "github.com/sagernet/sing/common/format"
 	N "github.com/sagernet/sing/common/network"
@@ -56,6 +56,9 @@ func (v *NetworkList) UnmarshalJSON(content []byte) error {
 		networkList []string
 		err         error
 	)
+	if string(content) == "null" {
+		return nil
+	}
 	if len(content) > 0 && content[0] != '[' {
 		networkList = make([]string, 1)
 		err = json.Unmarshal(content, &networkList[0])
@@ -94,6 +97,9 @@ func (l Listable[T]) MarshalJSON() ([]byte, error) {
 }
 
 func (l *Listable[T]) UnmarshalJSON(content []byte) error {
+	if string(content) == "null" {
+		return nil
+	}
 	if len(content) > 0 && content[0] != '[' {
 		var element T
 		err := json.Unmarshal(content, &element)
