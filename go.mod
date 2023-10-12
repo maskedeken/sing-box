@@ -4,7 +4,6 @@ go 1.20
 
 require (
 	berty.tech/go-libtor v1.0.385
-	github.com/Dreamacro/clash v1.17.0
 	github.com/JimmyHuang454/JLS-go v0.0.0-20230831150107-90d536585ba0
 	github.com/caddyserver/certmagic v0.19.2
 	github.com/cloudflare/circl v1.3.3
@@ -22,21 +21,20 @@ require (
 	github.com/miekg/dns v1.1.56
 	github.com/ooni/go-libtor v1.1.8
 	github.com/oschwald/maxminddb-golang v1.12.0
-	github.com/pires/go-proxyproto v0.7.0
 	github.com/sagernet/bbolt v0.0.0-20231008142710-b2d6e2f20458
 	github.com/sagernet/cloudflare-tls v0.0.0-20230829051644-4a68352d0c4a
 	github.com/sagernet/gomobile v0.0.0-20230915142329-c6740b6d2950
-	github.com/sagernet/gvisor v0.0.0-20230627031050-1ab0276e0dd2
-	github.com/sagernet/quic-go v0.0.0-20230919101909-0cc6c5dcecee
+	github.com/sagernet/gvisor v0.0.0-20230930141345-5fef6f2e17ab
+	github.com/sagernet/quic-go v0.0.0-20231008035953-32727fef9460
 	github.com/sagernet/reality v0.0.0-20230406110435-ee17307e7691
-	github.com/sagernet/sing v0.2.14-0.20231011040419-49f5dfd767e1
+	github.com/sagernet/sing v0.2.14-0.20231011041941-e4d9384bcd84
 	github.com/sagernet/sing-dns v0.1.10
 	github.com/sagernet/sing-mux v0.1.3
-	github.com/sagernet/sing-quic v0.1.2
+	github.com/sagernet/sing-quic v0.1.3-0.20231011042217-13b8d0b8f74b
 	github.com/sagernet/sing-shadowsocks v0.2.5
 	github.com/sagernet/sing-shadowsocks2 v0.1.4
 	github.com/sagernet/sing-shadowtls v0.1.4
-	github.com/sagernet/sing-tun v0.1.15
+	github.com/sagernet/sing-tun v0.1.16-0.20231006112722-19cc8b9e81aa
 	github.com/sagernet/sing-vmess v0.1.8
 	github.com/sagernet/smux v0.0.0-20230312102458-337ec2a5af37
 	github.com/sagernet/tfo-go v0.0.0-20230816093905-5a5c285d44a6
@@ -62,10 +60,9 @@ replace github.com/sagernet/sing-shadowtls => github.com/maskedeken/sing-shadowt
 
 replace github.com/sagernet/sing-shadowsocks2 => github.com/maskedeken/sing-shadowsocks2 v0.0.0-20230921074929-16e592206f4f
 
-replace github.com/sagernet/sing-quic => github.com/maskedeken/sing-quic v0.0.0-20231007125602-4cbbaf235f65
+replace github.com/sagernet/sing-quic => github.com/maskedeken/sing-quic v0.0.0-20231011070328-037cf7eb0e2d
 
 require (
-	github.com/Dreamacro/protobytes v0.0.0-20230617041236-6500a9f4f158 // indirect
 	github.com/ajg/form v1.5.1 // indirect
 	github.com/andybalholm/brotli v1.0.5 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
