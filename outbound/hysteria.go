@@ -19,7 +19,7 @@ import (
 	"github.com/sagernet/sing-box/option"
 	"github.com/sagernet/sing-box/transport/hysteria"
 	"github.com/sagernet/sing-box/transport/hysteria/hop"
-	qtls "github.com/sagernet/sing-quic"
+	"github.com/sagernet/sing-quic"
 	hyCC "github.com/sagernet/sing-quic/hysteria2/congestion"
 	"github.com/sagernet/sing/common"
 	"github.com/sagernet/sing/common/bufio"
