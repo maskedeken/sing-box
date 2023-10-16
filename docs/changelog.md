@@ -1,3 +1,16 @@
+#### 1.6.0-beta.2
+
+* Add TLS self sign key pair generate command
+* Update brutal congestion control for Hysteria2
+* Fix Clash cache crash on arm32 devices
+* Update golang.org/x/net to v0.17.0
+* Fixes and improvements
+
+#### 1.5.3
+
+* Fix compatibility with Android 14
+* Fixes and improvements
+
 #### 1.6.0-beta.1
 
 * Fixes and improvements
