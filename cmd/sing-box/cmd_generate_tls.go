@@ -10,6 +10,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var flagGenerateTLSKeyPairMonths int
+
 var commandGenerateTLSKeyPair = &cobra.Command{
 	Use:   "tls-keypair <server_name>",
 	Short: "Generate TLS self sign key pair",
@@ -23,11 +25,12 @@ var commandGenerateTLSKeyPair = &cobra.Command{
 }
 
 func init() {
+	commandGenerateTLSKeyPair.Flags().IntVarP(&flagGenerateTLSKeyPairMonths, "months", "m", 1, "Valid months")
 	commandGenerate.AddCommand(commandGenerateTLSKeyPair)
 }
 
 func generateTLSKeyPair(serverName string) error {
-	privateKeyPem, publicKeyPem, err := tls.GenerateKeyPair(time.Now, serverName)
+	privateKeyPem, publicKeyPem, err := tls.GenerateKeyPair(time.Now, serverName, time.Now().AddDate(0, flagGenerateTLSKeyPairMonths, 0))
 	if err != nil {
 		return err
 	}

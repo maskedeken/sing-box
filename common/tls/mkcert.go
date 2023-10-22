@@ -12,7 +12,7 @@ import (
 )
 
 func GenerateCertificate(timeFunc func() time.Time, serverName string) (*tls.Certificate, error) {
-	privateKeyPem, publicKeyPem, err := GenerateKeyPair(timeFunc, serverName)
+	privateKeyPem, publicKeyPem, err := GenerateKeyPair(timeFunc, serverName, timeFunc().Add(time.Hour))
 	if err != nil {
 		return nil, err
 	}
@@ -23,7 +23,7 @@ func GenerateCertificate(timeFunc func() time.Time, serverName string) (*tls.Cer
 	return &certificate, err
 }
 
-func GenerateKeyPair(timeFunc func() time.Time, serverName string) (privateKeyPem []byte, publicKeyPem []byte, err error) {
+func GenerateKeyPair(timeFunc func() time.Time, serverName string, expire time.Time) (privateKeyPem []byte, publicKeyPem []byte, err error) {
 	if timeFunc == nil {
 		timeFunc = time.Now
 	}
@@ -38,7 +38,7 @@ func GenerateKeyPair(timeFunc func() time.Time, serverName string) (privateKeyPe
 	template := &x509.Certificate{
 		SerialNumber:          serialNumber,
 		NotBefore:             timeFunc().Add(time.Hour * -1),
-		NotAfter:              timeFunc().Add(time.Hour),
+		NotAfter:              expire,
 		KeyUsage:              x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature,
 		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
 		BasicConstraintsValid: true,
