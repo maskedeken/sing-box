@@ -31,7 +31,7 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/docker/distribution v2.8.1+incompatible // indirect
 	github.com/docker/go-units v0.4.0 // indirect
-	github.com/fsnotify/fsnotify v1.6.0 // indirect
+	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/go-chi/chi/v5 v5.0.10 // indirect
 	github.com/go-chi/cors v1.2.1 // indirect
 	github.com/go-chi/render v1.0.3 // indirect
@@ -74,7 +74,7 @@ require (
 	github.com/sagernet/sing-dns v0.1.10 // indirect
 	github.com/sagernet/sing-mux v0.1.3 // indirect
 	github.com/sagernet/sing-shadowtls v0.1.4 // indirect
-	github.com/sagernet/sing-tun v0.1.16-0.20231006112722-19cc8b9e81aa // indirect
+	github.com/sagernet/sing-tun v0.1.16-0.20231022145846-fe9891a78413 // indirect
 	github.com/sagernet/sing-vmess v0.1.8 // indirect
 	github.com/sagernet/smux v0.0.0-20230312102458-337ec2a5af37 // indirect
 	github.com/sagernet/tfo-go v0.0.0-20230816093905-5a5c285d44a6 // indirect
