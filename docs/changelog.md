@@ -1,3 +1,13 @@
+#### 1.6.0-beta.3
+
+* Update the legacy Hysteria protocol **1**
+* Fixes and improvements
+
+**1**
+
+Based on discussions with the original author, the brutal CC and QUIC protocol parameters of
+the old protocol (Hysteria 1) have been updated to be consistent with Hysteria 2
+
 #### 1.6.0-beta.2
 
 * Add TLS self sign key pair generate command
@@ -24,7 +34,8 @@
 **1**:
 
 None of the existing Golang BBR congestion control implementations have been reviewed or unit tested.
-This update is intended to fix a memory leak flaw in the new implementation introduced in 1.6.0-alpha.1 and may introduce new issues.
+This update is intended to fix a memory leak flaw in the new implementation introduced in 1.6.0-alpha.1 and may
+introduce new issues.
 
 #### 1.6.0-alpha.4
 
