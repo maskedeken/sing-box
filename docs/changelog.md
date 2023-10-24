@@ -1,3 +1,17 @@
+#### 1.6.0-beta.4
+
+* Fix IPv6 `auto_route` for Linux **1**
+* Fixes and improvements
+
+**1**:
+
+When `auto_route` is enabled and `strict_route` is disabled, the device can now be reached from external IPv6 addresses.
+
+#### 1.5.4
+
+* Fix Clash cache crash on arm32 devices
+* Fixes and improvements
+
 #### 1.6.0-beta.3
 
 * Update the legacy Hysteria protocol **1**
