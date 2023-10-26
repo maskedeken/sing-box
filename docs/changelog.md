@@ -1,3 +1,12 @@
+#### 1.6.0-rc.1
+
+* Add legacy builds for old Windows and macOS systems **1**
+* Fixes and improvements
+
+**1**:
+
+Built using Go 1.20, the last version that will run on Windows 7, 8, Server 2008, Server 2012 and macOS 10.13 High Sierra, 10.14 Mojave.
+
 #### 1.6.0-beta.4
 
 * Fix IPv6 `auto_route` for Linux **1**
