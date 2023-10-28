@@ -121,7 +121,7 @@ func NewPacketConnection(ctx context.Context, this N.Dialer, conn N.PacketConn, 
 	}
 	if destinationAddress.IsValid() {
 		if metadata.Destination.IsFqdn() {
-			outConn = bufio.NewNATPacketConn(bufio.NewPacketConn(outConn), metadata.Destination, M.SocksaddrFrom(destinationAddress, metadata.Destination.Port))
+			outConn = bufio.NewNATPacketConn(bufio.NewPacketConn(outConn), M.SocksaddrFrom(destinationAddress, metadata.Destination.Port), metadata.Destination)
 		}
 		if natConn, loaded := common.Cast[bufio.NATPacketConn](conn); loaded {
 			natConn.UpdateDestination(destinationAddress)
