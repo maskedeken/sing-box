@@ -1,3 +1,7 @@
+#### 1.6.0-rc.3
+
+* Fixes and improvements
+
 #### 1.6.0-rc.2
 
 * Fixes and improvements
