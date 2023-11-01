@@ -1,8 +1,44 @@
-#### 1.6.0-rc.3
+#### 1.6.0
 
 * Fixes and improvements
 
-#### 1.6.0-rc.2
+Important changes since 1.5:
+
+* Our [Apple tvOS client](/installation/clients/sft) is now available in the App Store 🍎
+* Update BBR congestion control for TUIC and Hysteria2 **1**
+* Update brutal congestion control for Hysteria2
+* Add `brutal_debug` option for Hysteria2
+* Update legacy Hysteria protocol **2**
+* Add TLS self sign key pair generate command
+* Remove [Deprecated Features](/deprecated) by agreement
+
+**1**:
+
+None of the existing Golang BBR congestion control implementations have been reviewed or unit tested.
+This update is intended to address the multi-send defects of the old implementation and may introduce new issues.
+
+**2**
+
+Based on discussions with the original author, the brutal CC and QUIC protocol parameters of
+the old protocol (Hysteria 1) have been updated to be consistent with Hysteria 2
+
+
+#### 1.5.5
+
+* Fix IPv6 `auto_route` for Linux **1**
+* Add legacy builds for old Windows and macOS systems **2**
+* Fixes and improvements
+
+**1**:
+
+When `auto_route` is enabled and `strict_route` is disabled, the device can now be reached from external IPv6 addresses.
+
+**2**:
+
+Built using Go 1.20, the last version that will run on Windows 7, 8, Server 2008, Server 2012 and macOS 10.13 High Sierra, 10.14 Mojave.
+
+
+#### 1.6.0-rc.4
 
 * Fixes and improvements
 
