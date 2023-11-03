@@ -6,6 +6,7 @@ type VLESSInboundOptions struct {
 	TLS             *InboundTLSOptions        `json:"tls,omitempty"`
 	Fallback        *ServerOptions            `json:"fallback,omitempty"`
 	FallbackForALPN map[string]*ServerOptions `json:"fallback_for_alpn,omitempty"`
+	Multiplex       *InboundMultiplexOptions  `json:"multiplex,omitempty"`
 	Transport       *V2RayTransportOptions    `json:"transport,omitempty"`
 }
 
@@ -18,11 +19,11 @@ type VLESSUser struct {
 type VLESSOutboundOptions struct {
 	DialerOptions
 	ServerOptions
-	UUID           string                 `json:"uuid"`
-	Flow           string                 `json:"flow,omitempty"`
-	Network        NetworkList            `json:"network,omitempty"`
-	TLS            *OutboundTLSOptions    `json:"tls,omitempty"`
-	Multiplex      *MultiplexOptions      `json:"multiplex,omitempty"`
-	Transport      *V2RayTransportOptions `json:"transport,omitempty"`
-	PacketEncoding *string                `json:"packet_encoding,omitempty"`
+	UUID           string                    `json:"uuid"`
+	Flow           string                    `json:"flow,omitempty"`
+	Network        NetworkList               `json:"network,omitempty"`
+	TLS            *OutboundTLSOptions       `json:"tls,omitempty"`
+	Multiplex      *OutboundMultiplexOptions `json:"multiplex,omitempty"`
+	Transport      *V2RayTransportOptions    `json:"transport,omitempty"`
+	PacketEncoding *string                   `json:"packet_encoding,omitempty"`
 }
