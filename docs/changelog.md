@@ -1,3 +1,16 @@
+#### 1.7.0-alpha.4
+
+* Migrate multiplex and UoT server to inbound **1**
+* Add TCP Brutal support for multiplex **2**
+
+**1**:
+
+Starting in 1.7.0, multiplexing support is no longer enabled by default and needs to be turned on explicitly in inbound options.
+
+**2**
+
+Hysteria Brutal Congestion Control Algorithm in TCP. A kernel module needs to be installed on the Linux server, see [TCP Brutal](/configuration/shared/tcp-brutal) for details.
+
 #### 1.7.0-alpha.3
 
 * Add [HTTPUpgrade V2Ray transport](/configuration/shared/v2ray-transport#HTTPUpgrade) support **1**
