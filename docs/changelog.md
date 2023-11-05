@@ -1,3 +1,7 @@
+#### 1.7.0-alpha.6
+
+* Fixes and improvements
+
 #### 1.7.0-alpha.4
 
 * Migrate multiplex and UoT server to inbound **1**
