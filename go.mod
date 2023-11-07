@@ -27,27 +27,27 @@ require (
 	github.com/sagernet/gvisor v0.0.0-20230930141345-5fef6f2e17ab
 	github.com/sagernet/quic-go v0.0.0-20231008035953-32727fef9460
 	github.com/sagernet/reality v0.0.0-20230406110435-ee17307e7691
-	github.com/sagernet/sing v0.2.16-0.20231028125948-afcc9cb766c2
+	github.com/sagernet/sing v0.2.18-0.20231105080609-f4910823a651
 	github.com/sagernet/sing-dns v0.1.10
-	github.com/sagernet/sing-mux v0.1.4-0.20231105044304-ae2745a33479
-	github.com/sagernet/sing-quic v0.1.3-0.20231026034240-fa3d997246b6
+	github.com/sagernet/sing-mux v0.1.4-0.20231106145412-8912fc890007
+	github.com/sagernet/sing-quic v0.1.3
 	github.com/sagernet/sing-shadowsocks v0.2.5
 	github.com/sagernet/sing-shadowsocks2 v0.1.4
 	github.com/sagernet/sing-shadowtls v0.1.4
-	github.com/sagernet/sing-tun v0.1.17-0.20231104000158-fb98efb75ca7
+	github.com/sagernet/sing-tun v0.1.19-0.20231106133355-e77e52da4df5
 	github.com/sagernet/sing-vmess v0.1.8
 	github.com/sagernet/smux v0.0.0-20230312102458-337ec2a5af37
 	github.com/sagernet/tfo-go v0.0.0-20230816093905-5a5c285d44a6
 	github.com/sagernet/utls v0.0.0-20230309024959-6732c2ab36f2
 	github.com/sagernet/wireguard-go v0.0.0-20230807125731-5d4a7ef2dc5f
 	github.com/sagernet/ws v0.0.0-20231030053741-7d481eb31bed
-	github.com/spf13/cobra v1.7.0
+	github.com/spf13/cobra v1.8.0
 	github.com/stretchr/testify v1.8.4
 	go.uber.org/zap v1.26.0
 	go4.org/netipx v0.0.0-20230824141953-6213f710f925
 	golang.org/x/crypto v0.14.0
 	golang.org/x/net v0.17.0
-	golang.org/x/sys v0.13.0
+	golang.org/x/sys v0.14.0
 	golang.zx2c4.com/wireguard/wgctrl v0.0.0-20230429144221-925a1e7659e6
 	google.golang.org/grpc v1.59.0
 	google.golang.org/protobuf v1.31.0
@@ -59,7 +59,7 @@ replace github.com/sagernet/sing-shadowtls => github.com/maskedeken/sing-shadowt
 
 replace github.com/sagernet/sing-shadowsocks2 => github.com/maskedeken/sing-shadowsocks2 v0.0.0-20230921074929-16e592206f4f
 
-replace github.com/sagernet/sing-quic => github.com/maskedeken/sing-quic v0.0.0-20231026080403-c681c549620a
+replace github.com/sagernet/sing-quic => github.com/maskedeken/sing-quic v0.0.0-20231107015330-cec17fde6b73
 
 require (
 	github.com/ajg/form v1.5.1 // indirect
