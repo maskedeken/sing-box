@@ -115,7 +115,7 @@ func (w *platformInterfaceWrapper) OpenTun(options *tun.Options, platformOptions
 	if len(options.IncludeAndroidUser) > 0 {
 		return nil, E.New("android: unsupported android_user option")
 	}
-	routeRanges, err := options.BuildAutoRouteRanges()
+	routeRanges, err := options.BuildAutoRouteRanges(true)
 	if err != nil {
 		return nil, err
 	}
