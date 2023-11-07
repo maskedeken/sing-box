@@ -1,3 +1,12 @@
+#### 1.7.0-alpha.8
+
+* Fixes and improvements
+
+#### 1.6.1
+
+* Our [Android client](/installation/clients/sfa) is now available in the Google Play Store ▶️
+* Fixes and improvements
+
 #### 1.7.0-alpha.6
 
 * Fixes and improvements
