@@ -51,7 +51,6 @@ func NewTrojan(ctx context.Context, router adapter.Router, logger log.ContextLog
 		},
 		users: options.Users,
 	}
-	var err error
 	if options.TLS != nil {
 		tlsConfig, err := tls.NewServer(ctx, logger, common.PtrValueOrDefault(options.TLS))
 		if err != nil {
@@ -83,12 +82,8 @@ func NewTrojan(ctx context.Context, router adapter.Router, logger log.ContextLog
 		}
 		fallbackHandler = adapter.NewUpstreamContextHandler(inbound.fallbackConnection, nil, nil)
 	}
-	inbound.router, err = mux.NewRouterWithOptions(inbound.router, logger, common.PtrValueOrDefault(options.Multiplex))
-	if err != nil {
-		return nil, err
-	}
 	service := trojan.NewService[int](adapter.NewUpstreamContextHandler(inbound.newConnection, inbound.newPacketConnection, inbound), fallbackHandler)
-	err = service.UpdateUsers(common.MapIndexed(options.Users, func(index int, it option.TrojanUser) int {
+	err := service.UpdateUsers(common.MapIndexed(options.Users, func(index int, it option.TrojanUser) int {
 		return index
 	}), common.Map(options.Users, func(it option.TrojanUser) string {
 		return it.Password
