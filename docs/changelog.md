@@ -1,4 +1,4 @@
-#### 1.7.0-alpha.9
+#### 1.7.0-alpha.10
 
 * Fixes and improvements
 
