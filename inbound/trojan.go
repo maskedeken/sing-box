@@ -102,6 +102,10 @@ func NewTrojan(ctx context.Context, router adapter.Router, logger log.ContextLog
 			return nil, E.Cause(err, "create server transport: ", options.Transport.Type)
 		}
 	}
+	inbound.router, err = mux.NewRouterWithOptions(inbound.router, logger, common.PtrValueOrDefault(options.Multiplex))
+	if err != nil {
+		return nil, err
+	}
 	inbound.service = service
 	inbound.connHandler = inbound
 	return inbound, nil

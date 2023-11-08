@@ -1,5 +1,7 @@
 #### 1.7.0-alpha.10
 
+* Fix tcp-brutal not working with TLS
+* Fix Android client not closing in some cases
 * Fixes and improvements
 
 #### 1.6.2
