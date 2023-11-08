@@ -84,6 +84,9 @@ upload_android:
 release_android: lib_android update_android_version build_android upload_android
 
 publish_android:
+	cd ../sing-box-for-android && ./gradlew :app:publishReleaseBundle
+
+publish_android_appcenter:
 	cd ../sing-box-for-android && ./gradlew :app:appCenterAssembleAndUploadRelease
 
 build_ios:
@@ -149,10 +152,8 @@ update_apple_version:
 	go run ./cmd/internal/update_apple_version
 
 release_apple: lib_ios update_apple_version release_ios release_macos release_tvos release_macos_independent
-	rm -rf dist
 
 release_apple_beta: update_apple_version release_ios release_macos release_tvos
-	rm -rf dist
 
 test:
 	@go test -v ./... && \

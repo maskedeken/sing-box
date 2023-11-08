@@ -100,12 +100,9 @@ func (c *Client) DialContext(ctx context.Context) (net.Conn, error) {
 			conn.setup(nil, E.New("nil response"))
 		} else if response.StatusCode != 200 {
 			response.Body.Close()
-			conn.setup(nil, E.New("unexpected status: ", response.StatusCode, " ", response.Status))
-		} else if response.Body != nil {
-			// success
-			conn.setup(response.Body, nil)
+			conn.setup(nil, E.New("unexpected status: ", response.Status))
 		} else {
-			conn.setup(nil, E.New("nil response body"))
+			conn.setup(response.Body, nil)
 		}
 	}()
 	return conn, nil

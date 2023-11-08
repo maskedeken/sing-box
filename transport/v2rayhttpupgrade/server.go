@@ -55,6 +55,10 @@ func NewServer(ctx context.Context, options option.V2RayHTTPUpgradeOptions, tlsC
 	return server, nil
 }
 
+type httpFlusher interface {
+	FlushError() error
+}
+
 func (s *Server) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 	host := request.Host
 	if len(s.host) > 0 && host != s.host {
@@ -81,6 +85,15 @@ func (s *Server) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 		s.invalidRequest(writer, request, http.StatusNotFound, E.New("real websocket request received"))
 		return
 	}
+	writer.Header().Set("Connection", "upgrade")
+	writer.Header().Set("Upgrade", "websocket")
+	writer.WriteHeader(http.StatusSwitchingProtocols)
+	if flusher, isFlusher := writer.(httpFlusher); isFlusher {
+		err := flusher.FlushError()
+		if err != nil {
+			s.invalidRequest(writer, request, http.StatusInternalServerError, E.New("flush response"))
+		}
+	}
 	hijacker, canHijack := writer.(http.Hijacker)
 	if !canHijack {
 		s.invalidRequest(writer, request, http.StatusInternalServerError, E.New("invalid connection, maybe HTTP/2"))
@@ -89,17 +102,6 @@ func (s *Server) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 	conn, _, err := hijacker.Hijack()
 	if err != nil {
 		s.invalidRequest(writer, request, http.StatusInternalServerError, E.Cause(err, "hijack failed"))
-		return
-	}
-	response := &http.Response{
-		StatusCode: 101,
-		Header:     s.headers.Clone(),
-	}
-	response.Header.Set("Connection", "upgrade")
-	response.Header.Set("Upgrade", "websocket")
-	err = response.Write(conn)
-	if err != nil {
-		s.invalidRequest(writer, request, http.StatusInternalServerError, E.Cause(err, "write response failed"))
 		return
 	}
 	var metadata M.Metadata
