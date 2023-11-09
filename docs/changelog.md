@@ -1,3 +1,8 @@
+#### 1.7.0-alpha.11
+
+* iOS/Android: Fix profile auto update
+* Fixes and improvements
+
 #### 1.7.0-alpha.10
 
 * Fix tcp-brutal not working with TLS
