@@ -2,6 +2,7 @@ package outbound
 
 import (
 	"context"
+	"github.com/sagernet/sing-box/nekoutils"
 	"net"
 
 	"github.com/sagernet/sing-box/adapter"
@@ -118,6 +119,9 @@ func (s *Selector) SelectOutbound(tag string) bool {
 		}
 	}
 	s.interruptGroup.Interrupt(s.interruptExternalConnections)
+	if nekoutils.Selector_OnProxySelected != nil {
+		nekoutils.Selector_OnProxySelected(s.tag, tag)
+	}
 	return true
 }
 
