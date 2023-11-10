@@ -62,9 +62,9 @@ func (c *GunConn) Read(b []byte) (n int, err error) {
 func (c *GunConn) read(b []byte) (n int, err error) {
 	if c.reader == nil {
 		<-c.create
-	}
-	if c.err != nil {
-		return 0, c.err
+		if c.err != nil {
+			return 0, c.err
+		}
 	}
 
 	if c.readRemaining > 0 {
@@ -143,7 +143,7 @@ func (c *GunConn) LocalAddr() net.Addr {
 }
 
 func (c *GunConn) RemoteAddr() net.Addr {
-	return M.Socksaddr{}
+	return nil
 }
 
 func (c *GunConn) SetDeadline(t time.Time) error {

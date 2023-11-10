@@ -34,6 +34,7 @@ type Client struct {
 	transport  *http2.Transport
 	options    option.V2RayGRPCOptions
 	url        *url.URL
+	host       string
 }
 
 func NewClient(ctx context.Context, dialer N.Dialer, serverAddr M.Socksaddr, options option.V2RayGRPCOptions, tlsConfig tls.Config) adapter.V2RayClientTransport {
@@ -54,24 +55,24 @@ func NewClient(ctx context.Context, dialer N.Dialer, serverAddr M.Socksaddr, opt
 			DisableCompression: true,
 		},
 		url: &url.URL{
-			Scheme: "https",
-			Host:   host,
-			Path:   "/" + options.ServiceName + "/Tun",
-			// for unescape path
-			Opaque: "//" + host + "/" + options.ServiceName + "/Tun",
+			Scheme:  "https",
+			Host:    serverAddr.String(),
+			Path:    "/" + options.ServiceName + "/Tun",
+			RawPath: "/" + url.PathEscape(options.ServiceName) + "/Tun",
 		},
+		host: host,
 	}
 
 	if tlsConfig == nil {
 		client.transport.DialTLSContext = func(ctx context.Context, network, addr string, cfg *tls.STDConfig) (net.Conn, error) {
-			return dialer.DialContext(ctx, network, serverAddr)
+			return dialer.DialContext(ctx, network, M.ParseSocksaddr(addr))
 		}
 	} else {
 		if len(tlsConfig.NextProtos()) == 0 {
 			tlsConfig.SetNextProtos([]string{http2.NextProtoTLS})
 		}
 		client.transport.DialTLSContext = func(ctx context.Context, network, addr string, cfg *tls.STDConfig) (net.Conn, error) {
-			conn, err := dialer.DialContext(ctx, network, serverAddr)
+			conn, err := dialer.DialContext(ctx, network, M.ParseSocksaddr(addr))
 			if err != nil {
 				return nil, err
 			}
@@ -89,6 +90,7 @@ func (c *Client) DialContext(ctx context.Context) (net.Conn, error) {
 		Body:   pipeInReader,
 		URL:    c.url,
 		Header: defaultClientHeader,
+		Host:   c.host,
 	}
 	request = request.WithContext(ctx)
 	conn := newLateGunConn(pipeInWriter)
@@ -96,8 +98,6 @@ func (c *Client) DialContext(ctx context.Context) (net.Conn, error) {
 		response, err := c.transport.RoundTrip(request)
 		if err != nil {
 			conn.setup(nil, err)
-		} else if response == nil {
-			conn.setup(nil, E.New("nil response"))
 		} else if response.StatusCode != 200 {
 			response.Body.Close()
 			conn.setup(nil, E.New("unexpected status: ", response.Status))
