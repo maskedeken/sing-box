@@ -2,6 +2,7 @@ package outbound
 
 import (
 	"context"
+	"github.com/sagernet/sing-box/nekoutils"
 	"net"
 
 	"github.com/sagernet/sing-box/adapter"
