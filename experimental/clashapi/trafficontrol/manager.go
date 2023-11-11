@@ -6,6 +6,7 @@ import (
 
 	"github.com/sagernet/sing-box/experimental/clashapi/compatible"
 	"github.com/sagernet/sing/common/atomic"
+	E "github.com/sagernet/sing/common/exceptions"
 )
 
 type Manager struct {
@@ -112,7 +113,12 @@ func (m *Manager) handle() {
 
 func (m *Manager) Close() error {
 	m.ticker.Stop()
-	close(m.done)
+	select {
+	case <-m.done:
+		return E.New("clash API has already been closed")
+	default:
+		close(m.done)
+	}
 	return nil
 }
 
