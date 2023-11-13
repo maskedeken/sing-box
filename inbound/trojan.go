@@ -44,7 +44,7 @@ func NewTrojan(ctx context.Context, router adapter.Router, logger log.ContextLog
 			protocol:      C.TypeTrojan,
 			network:       []string{N.NetworkTCP},
 			ctx:           ctx,
-			router:        router,
+			router:        mux.NewV2RayLegacyRouter(router, logger),
 			logger:        logger,
 			tag:           tag,
 			listenOptions: options.ListenOptions,

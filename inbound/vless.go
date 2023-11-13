@@ -14,7 +14,7 @@ import (
 	"github.com/sagernet/sing-box/option"
 	"github.com/sagernet/sing-box/transport/v2ray"
 	"github.com/sagernet/sing-box/transport/vless"
-	"github.com/sagernet/sing-vmess"
+	vmess "github.com/sagernet/sing-vmess"
 	"github.com/sagernet/sing-vmess/packetaddr"
 	"github.com/sagernet/sing/common"
 	"github.com/sagernet/sing/common/auth"
@@ -46,7 +46,7 @@ func NewVLESS(ctx context.Context, router adapter.Router, logger log.ContextLogg
 			protocol:      C.TypeVLESS,
 			network:       []string{N.NetworkTCP},
 			ctx:           ctx,
-			router:        uot.NewRouter(router, logger),
+			router:        mux.NewV2RayLegacyRouter(uot.NewRouter(router, logger), logger),
 			logger:        logger,
 			tag:           tag,
 			listenOptions: options.ListenOptions,

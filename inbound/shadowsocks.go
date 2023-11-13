@@ -11,7 +11,7 @@ import (
 	C "github.com/sagernet/sing-box/constant"
 	"github.com/sagernet/sing-box/log"
 	"github.com/sagernet/sing-box/option"
-	"github.com/sagernet/sing-shadowsocks"
+	shadowsocks "github.com/sagernet/sing-shadowsocks"
 	"github.com/sagernet/sing-shadowsocks/shadowaead"
 	"github.com/sagernet/sing-shadowsocks/shadowaead_2022"
 	"github.com/sagernet/sing/common"
@@ -50,7 +50,7 @@ func newShadowsocks(ctx context.Context, router adapter.Router, logger log.Conte
 			protocol:      C.TypeShadowsocks,
 			network:       options.Network.Build(),
 			ctx:           ctx,
-			router:        uot.NewRouter(router, logger),
+			router:        mux.NewV2RayLegacyRouter(uot.NewRouter(router, logger), logger),
 			logger:        logger,
 			tag:           tag,
 			listenOptions: options.ListenOptions,
