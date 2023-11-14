@@ -124,8 +124,8 @@ github.com/sagernet/sing-mux v0.1.4 h1:BPNPOQr6HkXG3iY/BrfvUKUl+A7gYsGKVSxvoR3PO
 github.com/sagernet/sing-mux v0.1.4/go.mod h1:dKvcu/sb3fZ88uGv9vzAqUej6J4W+pHu5GqjRuFwAWs=
 github.com/sagernet/sing-shadowsocks v0.2.5 h1:qxIttos4xu6ii7MTVJYA8EFQR7Q3KG6xMqmLJIFtBaY=
 github.com/sagernet/sing-shadowsocks v0.2.5/go.mod h1:MGWGkcU2xW2G2mfArT9/QqpVLOGU+dBaahZCtPHdt7A=
-github.com/sagernet/sing-tun v0.1.19 h1:Xp69PWltr0Ga8GFhVusQEV4rx7XUMlqSV/FZnJcWF/k=
-github.com/sagernet/sing-tun v0.1.19/go.mod h1:YA4MqRgYbO+igD07xt5WyRLjmwcXD5oRFy2itQbUVK0=
+github.com/sagernet/sing-tun v0.1.20-0.20231113053348-91024284375c h1:gb5/0Kb1Ha+LUkOVW/3dAqa0zmQBCkz8XREzMiGCCq0=
+github.com/sagernet/sing-tun v0.1.20-0.20231113053348-91024284375c/go.mod h1:YA4MqRgYbO+igD07xt5WyRLjmwcXD5oRFy2itQbUVK0=
 github.com/sagernet/sing-vmess v0.1.8 h1:XVWad1RpTy9b5tPxdm5MCU8cGfrTGdR8qCq6HV2aCNc=
 github.com/sagernet/sing-vmess v0.1.8/go.mod h1:vhx32UNzTDUkNwOyIjcZQohre1CaytquC5mPplId8uA=
 github.com/sagernet/smux v0.0.0-20230312102458-337ec2a5af37 h1:HuE6xSwco/Xed8ajZ+coeYLmioq0Qp1/Z2zczFaV8as=

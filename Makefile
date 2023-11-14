@@ -3,7 +3,7 @@ COMMIT = $(shell git rev-parse --short HEAD)
 TAGS_GO118 = with_gvisor,with_dhcp,with_wireguard,with_utls,with_reality_server,with_clash_api
 TAGS_GO120 = with_quic,with_ech
 TAGS ?= $(TAGS_GO118),$(TAGS_GO120)
-TAGS_TEST ?= with_gvisor,with_quic,with_wireguard,with_grpc,with_ech,with_utls,with_reality_server,with_shadowsocksr
+TAGS_TEST ?= with_gvisor,with_quic,with_wireguard,with_grpc,with_ech,with_utls,with_reality_server
 
 GOHOSTOS = $(shell go env GOHOSTOS)
 GOHOSTARCH = $(shell go env GOHOSTARCH)
@@ -61,7 +61,7 @@ proto_install:
 release:
 	go run ./cmd/internal/build goreleaser release --clean --skip-publish || exit 1
 	mkdir dist/release
-	mv dist/*.tar.gz dist/*.zip dist/*.deb dist/*.rpm dist/release
+	mv dist/*.tar.gz dist/*.zip dist/*.deb dist/*.rpm dist/*.apk dist/*.pkg.tar.zst dist/release
 	ghr --replace --draft --prerelease -p 3 "v${VERSION}" dist/release
 	rm -r dist/release
 
