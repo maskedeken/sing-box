@@ -40,7 +40,7 @@ func newShadowsocksMulti(ctx context.Context, router adapter.Router, logger log.
 			protocol:      C.TypeShadowsocks,
 			network:       options.Network.Build(),
 			ctx:           ctx,
-			router:        uot.NewRouter(router, logger),
+			router:        mux.NewV2RayLegacyRouter(uot.NewRouter(router, logger), logger),
 			logger:        logger,
 			tag:           tag,
 			listenOptions: options.ListenOptions,

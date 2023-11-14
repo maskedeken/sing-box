@@ -44,7 +44,7 @@ func NewVMess(ctx context.Context, router adapter.Router, logger log.ContextLogg
 			protocol:      C.TypeVMess,
 			network:       []string{N.NetworkTCP},
 			ctx:           ctx,
-			router:        uot.NewRouter(router, logger),
+			router:        mux.NewV2RayLegacyRouter(uot.NewRouter(router, logger), logger),
 			logger:        logger,
 			tag:           tag,
 			listenOptions: options.ListenOptions,

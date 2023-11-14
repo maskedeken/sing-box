@@ -1,3 +1,12 @@
+#### 1.7.0-beta.1
+
+* Fixes and improvements
+
+#### 1.6.3
+
+* iOS/Android: Fix profile auto update
+* Fixes and improvements
+
 #### 1.7.0-alpha.11
 
 * iOS/Android: Fix profile auto update
