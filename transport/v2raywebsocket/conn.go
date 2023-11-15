@@ -178,11 +178,17 @@ func (c *EarlyWebsocketConn) writeRequest(content []byte) error {
 	} else {
 		conn, err = c.dialContext(c.ctx, &c.requestURL, c.headers)
 	}
-	c.conn = conn
-	if len(lateData) > 0 {
-		_, err = c.conn.Write(lateData)
+	if err != nil {
+		return err
 	}
-	return err
+	if len(lateData) > 0 {
+		_, err = conn.Write(lateData)
+		if err != nil {
+			return err
+		}
+	}
+	c.conn = conn
+	return nil
 }
 
 func (c *EarlyWebsocketConn) Write(b []byte) (n int, err error) {
