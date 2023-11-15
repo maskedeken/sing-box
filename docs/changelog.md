@@ -1,3 +1,13 @@
+#### 1.7.0-beta.2
+
+* Fix crash if TUIC inbound authentication failed
+* Update quic-go to v0.40.0
+* Fixes and improvements
+
+#### 1.6.4
+
+* Fixes and improvements
+
 #### 1.7.0-beta.1
 
 * Fixes and improvements
