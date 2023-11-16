@@ -24,7 +24,7 @@ var tlsRegistry []func(conn net.Conn) (loaded bool, netConn net.Conn, reflectTyp
 
 func init() {
 	tlsRegistry = append(tlsRegistry, func(conn net.Conn) (loaded bool, netConn net.Conn, reflectType reflect.Type, reflectPointer uintptr) {
-		tlsConn, loaded := conn.(*tls.Conn)
+		tlsConn, loaded := common.Cast[*tls.Conn](conn)
 		if !loaded {
 			return
 		}
@@ -68,13 +68,8 @@ func NewVisionConn(conn net.Conn, tlsConn net.Conn, userUUID [16]byte, logger lo
 		reflectPointer uintptr
 		netConn        net.Conn
 	)
-
-	conn1 := tlsConn
-	if cacheConn, ok := tlsConn.(*bufio.CachedConn); ok {
-		conn1 = cacheConn.Conn
-	}
 	for _, tlsCreator := range tlsRegistry {
-		loaded, netConn, reflectType, reflectPointer = tlsCreator(conn1)
+		loaded, netConn, reflectType, reflectPointer = tlsCreator(tlsConn)
 		if loaded {
 			break
 		}
