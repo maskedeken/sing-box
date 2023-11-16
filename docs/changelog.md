@@ -1,3 +1,15 @@
+# :material-alert-decagram: ChangeLog
+
+#### 1.7.0-beta.3
+
+* Fix zero TTL was incorrectly reset
+* Fixes and improvements
+
+#### 1.6.5
+
+* Fix crash if TUIC inbound authentication failed
+* Fixes and improvements
+
 #### 1.7.0-beta.2
 
 * Fix crash if TUIC inbound authentication failed
