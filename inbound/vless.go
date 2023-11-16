@@ -46,7 +46,7 @@ func NewVLESS(ctx context.Context, router adapter.Router, logger log.ContextLogg
 			protocol:      C.TypeVLESS,
 			network:       []string{N.NetworkTCP},
 			ctx:           ctx,
-			router:        mux.NewV2RayLegacyRouter(uot.NewRouter(router, logger), logger),
+			router:        uot.NewRouter(router, logger),
 			logger:        logger,
 			tag:           tag,
 			listenOptions: options.ListenOptions,
