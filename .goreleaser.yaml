@@ -24,6 +24,7 @@ builds:
     env:
       - CGO_ENABLED=0
     targets:
+      - linux_386
       - linux_amd64_v1
       - linux_amd64_v3
       - linux_arm64
@@ -157,7 +158,6 @@ nfpms:
     formats:
       - deb
       - rpm
-      - apk
       - archlinux
     priority: extra
     contents:

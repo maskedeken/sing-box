@@ -29,11 +29,11 @@ require (
 	github.com/sagernet/sing v0.2.17
 	github.com/sagernet/sing-dns v0.1.10
 	github.com/sagernet/sing-mux v0.1.4
-	github.com/sagernet/sing-quic v0.1.3
+	github.com/sagernet/sing-quic v0.1.4-0.20231111111624-370e6abf6769
 	github.com/sagernet/sing-shadowsocks v0.2.5
 	github.com/sagernet/sing-shadowsocks2 v0.1.4
 	github.com/sagernet/sing-shadowtls v0.1.4
-	github.com/sagernet/sing-tun v0.1.20-0.20231113053348-91024284375c
+	github.com/sagernet/sing-tun v0.1.20-0.20231114091624-78e0dfa18fab
 	github.com/sagernet/sing-vmess v0.1.8
 	github.com/sagernet/smux v0.0.0-20230312102458-337ec2a5af37
 	github.com/sagernet/tfo-go v0.0.0-20230816093905-5a5c285d44a6
@@ -58,7 +58,7 @@ replace github.com/sagernet/sing-shadowtls => github.com/maskedeken/sing-shadowt
 
 replace github.com/sagernet/sing-shadowsocks2 => github.com/maskedeken/sing-shadowsocks2 v0.0.0-20230921074929-16e592206f4f
 
-replace github.com/sagernet/sing-quic => github.com/maskedeken/sing-quic v0.0.0-20231107015330-cec17fde6b73
+replace github.com/sagernet/sing-quic => github.com/maskedeken/sing-quic v0.0.0-20231116054622-e71d7e95d540
 
 require (
 	github.com/ajg/form v1.5.1 // indirect
