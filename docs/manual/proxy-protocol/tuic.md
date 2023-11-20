@@ -1,4 +1,8 @@
-# :material-alpha-t-box: TUIC
+---
+icon: material/alpha-t-box
+---
+
+# TUIC
 
 A recently popular Chinese-made simple protocol based on QUIC, the selling point is the BBR congestion control algorithm.
 
@@ -12,9 +16,9 @@ A recently popular Chinese-made simple protocol based on QUIC, the selling point
 
 ## Password Generator
 
-| Generated UUID         | Generated  Password        | Action                                        |
-|------------------------|----------------------------|-----------------------------------------------|
-| <code id="uuid"><code> | <code id="password"><code> | <button onclick="generate()">Refresh</button> |
+| Generated UUID         | Generated  Password        | Action                                                          |
+|------------------------|----------------------------|-----------------------------------------------------------------|
+| <code id="uuid"><code> | <code id="password"><code> | <button class="md-button" onclick="generate()">Refresh</button> |
 
 <script>
     function generateUUID() {

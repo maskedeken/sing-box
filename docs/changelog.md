@@ -1,4 +1,22 @@
-# :material-alert-decagram: ChangeLog
+---
+icon: material/alert-decagram
+---
+
+# ChangeLog
+
+#### 1.7.0-beta.5
+
+* Update gVisor to 20231113.0
+* Fixes and improvements
+
+#### 1.7.0-beta.4
+
+* Add `wifi_ssid` and `wifi_bssid` route and DNS rules **1**
+* Fixes and improvements
+
+**1**:
+
+Only supported in graphical clients on Android and iOS.
 
 #### 1.7.0-beta.3
 
