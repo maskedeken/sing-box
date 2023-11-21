@@ -4,6 +4,14 @@ icon: material/alert-decagram
 
 # ChangeLog
 
+#### 1.6.6
+
+* Fixes and improvements
+
+#### 1.7.0-rc.1
+
+* Fixes and improvements
+
 #### 1.7.0-beta.5
 
 * Update gVisor to 20231113.0
