@@ -25,10 +25,10 @@ import (
 	"github.com/sagernet/sing-box/option"
 	"github.com/sagernet/sing-box/outbound"
 	"github.com/sagernet/sing-box/transport/fakeip"
-	dns "github.com/sagernet/sing-dns"
+	"github.com/sagernet/sing-dns"
 	mux "github.com/sagernet/sing-mux"
-	tun "github.com/sagernet/sing-tun"
-	vmess "github.com/sagernet/sing-vmess"
+	"github.com/sagernet/sing-tun"
+	"github.com/sagernet/sing-vmess"
 	"github.com/sagernet/sing/common"
 	"github.com/sagernet/sing/common/buf"
 	"github.com/sagernet/sing/common/bufio"
@@ -86,6 +86,8 @@ type Router struct {
 	clashServer                        adapter.ClashServer
 	v2rayServer                        adapter.V2RayServer
 	platformInterface                  platform.Interface
+	needWIFIState                      bool
+	wifiState                          adapter.WIFIState
 }
 
 func NewRouter(
@@ -116,6 +118,7 @@ func NewRouter(
 		defaultMark:           options.DefaultMark,
 		pauseManager:          pause.ManagerFromContext(ctx),
 		platformInterface:     platformInterface,
+		needWIFIState:         hasRule(options.Rules, isWIFIRule) || hasDNSRule(dnsOptions.Rules, isWIFIDNSRule),
 	}
 	router.dnsClient = dns.NewClient(dns.ClientOptions{
 		DisableCache:     dnsOptions.DNSClientOptions.DisableCache,
@@ -328,6 +331,11 @@ func NewRouter(
 		service.ContextWith[serviceNTP.TimeService](ctx, timeService)
 		router.timeService = timeService
 	}
+	if platformInterface != nil && router.interfaceMonitor != nil && router.needWIFIState {
+		router.interfaceMonitor.RegisterCallback(func(_ int) {
+			router.updateWIFIState()
+		})
+	}
 	return router, nil
 }
 
@@ -467,6 +475,9 @@ func (r *Router) Start() error {
 		}
 		r.geositeCache = nil
 		r.geositeReader = nil
+	}
+	if r.needWIFIState {
+		r.updateWIFIState()
 	}
 	for i, rule := range r.rules {
 		err := rule.Start()
@@ -940,6 +951,10 @@ func (r *Router) Rules() []adapter.Rule {
 	return r.rules
 }
 
+func (r *Router) WIFIState() adapter.WIFIState {
+	return r.wifiState
+}
+
 func (r *Router) NetworkMonitor() tun.NetworkUpdateMonitor {
 	return r.networkMonitor
 }
@@ -1018,4 +1033,15 @@ func (r *Router) ResetNetwork() error {
 		transport.Reset()
 	}
 	return nil
+}
+
+func (r *Router) updateWIFIState() {
+	if r.platformInterface == nil {
+		return
+	}
+	state := r.platformInterface.ReadWIFIState()
+	if state != r.wifiState {
+		r.wifiState = state
+		r.logger.Info("updated WIFI state: SSID=", state.SSID, ", BSSID=", state.BSSID)
+	}
 }
