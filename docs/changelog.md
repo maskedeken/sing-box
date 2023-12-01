@@ -4,6 +4,14 @@ icon: material/alert-decagram
 
 # ChangeLog
 
+#### 1.8.0-alpha.7
+
+* Fixes and improvements
+
+#### 1.7.1
+
+* Fixes and improvements
+
 #### 1.8.0-alpha.6
 
 * Fix rule-set matching logic **1**

@@ -46,19 +46,24 @@ type InboundContext struct {
 	SourceGeoIPCode      string
 	GeoIPCode            string
 	ProcessInfo          *process.Info
+	QueryType            uint16
 	FakeIP               bool
-	IPCIDRMatchSource    bool
 
-	// rule merge
+	// rule cache
 
+	IPCIDRMatchSource       bool
 	SourceAddressMatch      bool
 	SourcePortMatch         bool
 	DestinationAddressMatch bool
 	DestinationPortMatch    bool
+}
 
-	// dns cache
-
-	QueryType uint16
+func (c *InboundContext) ResetRuleCache() {
+	c.IPCIDRMatchSource = false
+	c.SourceAddressMatch = false
+	c.SourcePortMatch = false
+	c.DestinationAddressMatch = false
+	c.DestinationPortMatch = false
 }
 
 type inboundContextKey struct{}

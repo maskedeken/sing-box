@@ -690,7 +690,6 @@ func (r *Router) RouteConnection(ctx context.Context, conn net.Conn, metadata ad
 
 	if metadata.InboundOptions.SniffEnabled {
 		buffer := buf.NewPacket()
-		buffer.FullReset()
 		sniffMetadata, err := sniff.PeekStream(ctx, conn, buffer, time.Duration(metadata.InboundOptions.SniffTimeout), sniff.StreamDomainNameQuery, sniff.TLSClientHello, sniff.HTTPHost)
 		if sniffMetadata != nil {
 			metadata.Protocol = sniffMetadata.Protocol
@@ -806,7 +805,6 @@ func (r *Router) RoutePacketConnection(ctx context.Context, conn N.PacketConn, m
 
 	if metadata.InboundOptions.SniffEnabled || metadata.Destination.Addr.IsUnspecified() {
 		buffer := buf.NewPacket()
-		buffer.FullReset()
 		destination, err := conn.ReadPacket(buffer)
 		if err != nil {
 			buffer.Release()
@@ -922,6 +920,7 @@ func (r *Router) match0(ctx context.Context, metadata *adapter.InboundContext, d
 		}
 	}
 	for i, rule := range r.rules {
+		metadata.ResetRuleCache()
 		if rule.Match(metadata) {
 			detour := rule.Outbound()
 			r.logger.DebugContext(ctx, "match[", i, "] ", rule.String(), " => ", detour)
