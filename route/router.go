@@ -255,6 +255,9 @@ func NewRouter(
 		}
 		defaultTransport = transports[0]
 	}
+	if _, isFakeIP := defaultTransport.(adapter.FakeIPTransport); isFakeIP {
+		return nil, E.New("default DNS server cannot be fakeip")
+	}
 	router.defaultTransport = defaultTransport
 	router.transports = transports
 	router.transportMap = transportMap
@@ -540,6 +543,18 @@ func (r *Router) Start() error {
 		err := r.timeService.Start()
 		if err != nil {
 			return E.Cause(err, "initialize time service")
+		}
+	}
+	return nil
+}
+
+func (r *Router) PostStart() error {
+	if len(r.ruleSets) > 0 {
+		for i, ruleSet := range r.ruleSets {
+			err := ruleSet.PostStart()
+			if err != nil {
+				return E.Cause(err, "post start rule-set[", i, "]")
+			}
 		}
 	}
 	return nil

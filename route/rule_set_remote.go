@@ -93,14 +93,18 @@ func (s *RemoteRuleSet) StartContext(ctx context.Context, startContext adapter.R
 			s.lastEtag = savedSet.LastEtag
 		}
 	}
-	if s.lastUpdated.IsZero() {
-		err := s.fetchOnce(ctx, startContext)
-		if err != nil {
-			return E.Cause(err, "fetch rule-set ", s.options.Tag)
-		}
-	}
 	s.updateTicker = time.NewTicker(s.updateInterval)
 	go s.loopUpdate()
+	return nil
+}
+
+func (s *RemoteRuleSet) PostStart() error {
+	if s.lastUpdated.IsZero() {
+		err := s.fetchOnce(s.ctx, nil)
+		if err != nil {
+			s.logger.Error("fetch rule-set ", s.options.Tag, ": ", err)
+		}
+	}
 	return nil
 }
 
