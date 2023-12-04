@@ -2,7 +2,22 @@
 icon: material/alert-decagram
 ---
 
-# ChangeLog
+#### 1.8.0-alpha.11
+
+* Fixes and improvements
+
+#### 1.8.0-alpha.10
+
+* Add `idle_timeout` for URLTest outbound **1**
+* Fixes and improvements
+
+**1**:
+
+When URLTest is idle for a certain period of time, the scheduled delay test will be paused.
+
+#### 1.7.2
+
+* Fixes and improvements
 
 #### 1.8.0-alpha.8
 

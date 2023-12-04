@@ -6,6 +6,7 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"runtime"
 	"time"
 
 	"github.com/sagernet/sing-box/adapter"
@@ -29,6 +30,7 @@ type RemoteRuleSet struct {
 	router         adapter.Router
 	logger         logger.ContextLogger
 	options        option.RuleSet
+	metadata       adapter.RuleSetMetadata
 	updateInterval time.Duration
 	dialer         N.Dialer
 	rules          []adapter.HeadlessRule
@@ -93,6 +95,12 @@ func (s *RemoteRuleSet) StartContext(ctx context.Context, startContext adapter.R
 			s.lastEtag = savedSet.LastEtag
 		}
 	}
+	if s.lastUpdated.IsZero() {
+		err := s.fetchOnce(ctx, startContext)
+		if err != nil {
+			return E.Cause(err, "initial rule-set: ", s.options.Tag)
+		}
+	}
 	s.updateTicker = time.NewTicker(s.updateInterval)
 	go s.loopUpdate()
 	return nil
@@ -106,6 +114,10 @@ func (s *RemoteRuleSet) PostStart() error {
 		}
 	}
 	return nil
+}
+
+func (s *RemoteRuleSet) Metadata() adapter.RuleSetMetadata {
+	return s.metadata
 }
 
 func (s *RemoteRuleSet) loadBytes(content []byte) error {
@@ -138,6 +150,8 @@ func (s *RemoteRuleSet) loadBytes(content []byte) error {
 			return E.Cause(err, "parse rule_set.rules.[", i, "]")
 		}
 	}
+	s.metadata.ContainsProcessRule = hasHeadlessRule(plainRuleSet.Rules, isProcessHeadlessRule)
+	s.metadata.ContainsWIFIRule = hasHeadlessRule(plainRuleSet.Rules, isWIFIHeadlessRule)
 	s.rules = rules
 	return nil
 }
@@ -150,6 +164,7 @@ func (s *RemoteRuleSet) loopUpdate() {
 		}
 	}
 	for {
+		runtime.GC()
 		select {
 		case <-s.ctx.Done():
 			return
@@ -193,6 +208,19 @@ func (s *RemoteRuleSet) fetchOnce(ctx context.Context, startContext adapter.Rule
 	switch response.StatusCode {
 	case http.StatusOK:
 	case http.StatusNotModified:
+		s.lastUpdated = time.Now()
+		cacheFile := service.FromContext[adapter.CacheFile](s.ctx)
+		if cacheFile != nil {
+			savedRuleSet := cacheFile.LoadRuleSet(s.options.Tag)
+			savedRuleSet.LastUpdated = s.lastUpdated
+			if savedRuleSet != nil {
+				err = cacheFile.SaveRuleSet(s.options.Tag, savedRuleSet)
+				if err != nil {
+					s.logger.Error("save rule-set updated time: ", err)
+					return nil
+				}
+			}
+		}
 		s.logger.Info("update rule-set ", s.options.Tag, ": not modified")
 		return nil
 	default:
