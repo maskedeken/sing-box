@@ -10,11 +10,11 @@ import (
 	"time"
 
 	"github.com/sagernet/sing-box/adapter"
-	"github.com/sagernet/sing-box/common/json"
 	"github.com/sagernet/sing-box/common/srs"
 	C "github.com/sagernet/sing-box/constant"
 	"github.com/sagernet/sing-box/option"
 	E "github.com/sagernet/sing/common/exceptions"
+	"github.com/sagernet/sing/common/json"
 	"github.com/sagernet/sing/common/logger"
 	M "github.com/sagernet/sing/common/metadata"
 	N "github.com/sagernet/sing/common/network"
@@ -212,8 +212,8 @@ func (s *RemoteRuleSet) fetchOnce(ctx context.Context, startContext adapter.Rule
 		cacheFile := service.FromContext[adapter.CacheFile](s.ctx)
 		if cacheFile != nil {
 			savedRuleSet := cacheFile.LoadRuleSet(s.options.Tag)
-			savedRuleSet.LastUpdated = s.lastUpdated
 			if savedRuleSet != nil {
+				savedRuleSet.LastUpdated = s.lastUpdated
 				err = cacheFile.SaveRuleSet(s.options.Tag, savedRuleSet)
 				if err != nil {
 					s.logger.Error("save rule-set updated time: ", err)
