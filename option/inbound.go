@@ -116,7 +116,7 @@ func (h *Inbound) UnmarshalJSON(bytes []byte) error {
 	}
 	err = UnmarshallExcluded(bytes, (*_Inbound)(h), v)
 	if err != nil {
-		return E.Cause(err, "inbound options")
+		return err
 	}
 	return nil
 }

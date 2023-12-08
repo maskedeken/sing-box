@@ -512,9 +512,8 @@ func (r *Router) Start() error {
 			needWIFIStateFromRuleSet = true
 		}
 	}
-	if needProcessFromRuleSet || r.needFindProcess {
-		needPackageManager := C.IsAndroid && r.platformInterface == nil
-
+	needPackageManager := C.IsAndroid && r.platformInterface == nil
+	if needProcessFromRuleSet || r.needFindProcess || needPackageManager {
 		if needPackageManager {
 			monitor.Start("initialize package manager")
 			packageManager, err := tun.NewPackageManager(r)
@@ -522,13 +521,11 @@ func (r *Router) Start() error {
 			if err != nil {
 				return E.Cause(err, "create package manager")
 			}
-			if packageManager != nil {
-				monitor.Start("start package manager")
-				err = packageManager.Start()
-				monitor.Finish()
-				if err != nil {
-					return err
-				}
+			monitor.Start("start package manager")
+			err = packageManager.Start()
+			monitor.Finish()
+			if err != nil {
+				return E.Cause(err, "start package manager")
 			}
 			r.packageManager = packageManager
 		}
