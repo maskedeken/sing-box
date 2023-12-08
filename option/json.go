@@ -49,12 +49,12 @@ func MarshallObjects(objects ...any) ([]byte, error) {
 func UnmarshallExcluded(inputContent []byte, parentObject any, object any) error {
 	parentContent, err := ToMap(parentObject)
 	if err != nil {
-		return E.Cause(err, "toMap")
+		return err
 	}
 	var content badjson.JSONObject
 	err = content.UnmarshalJSON(inputContent)
 	if err != nil {
-		return E.Cause(err, "unmarshalJSON")
+		return err
 	}
 	for _, key := range parentContent.Keys() {
 		content.Remove(key)
@@ -69,7 +69,6 @@ func UnmarshallExcluded(inputContent []byte, parentObject any, object any) error
 	if err != nil {
 		return err
 	}
-	println(string(inputContent))
 	decoder := json.NewDecoder(bytes.NewReader(inputContent))
 	decoder.DisallowUnknownFields()
 	return decoder.Decode(object)

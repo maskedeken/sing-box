@@ -4,6 +4,10 @@ icon: material/alert-decagram
 
 #### 1.8.0-alpha.16
 
+* Fixes and improvements
+
+#### 1.8.0-alpha.15
+
 * Some chaotic changes **1**
 * Fixes and improvements
 
