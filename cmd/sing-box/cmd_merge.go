@@ -6,19 +6,19 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/sagernet/sing-box/common/json"
 	C "github.com/sagernet/sing-box/constant"
 	"github.com/sagernet/sing-box/log"
 	"github.com/sagernet/sing-box/option"
 	"github.com/sagernet/sing/common"
 	E "github.com/sagernet/sing/common/exceptions"
+	"github.com/sagernet/sing/common/json"
 	"github.com/sagernet/sing/common/rw"
 
 	"github.com/spf13/cobra"
 )
 
 var commandMerge = &cobra.Command{
-	Use:   "merge [output]",
+	Use:   "merge <output>",
 	Short: "Merge configurations",
 	Run: func(cmd *cobra.Command, args []string) {
 		err := merge(args[0])

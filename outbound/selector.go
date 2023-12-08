@@ -13,6 +13,7 @@ import (
 	E "github.com/sagernet/sing/common/exceptions"
 	M "github.com/sagernet/sing/common/metadata"
 	N "github.com/sagernet/sing/common/network"
+	"github.com/sagernet/sing/service"
 )
 
 var (
@@ -22,6 +23,7 @@ var (
 
 type Selector struct {
 	myOutboundAdapter
+	ctx                          context.Context
 	tags                         []string
 	defaultTag                   string
 	outbounds                    map[string]adapter.Outbound
@@ -30,7 +32,7 @@ type Selector struct {
 	interruptExternalConnections bool
 }
 
-func NewSelector(router adapter.Router, logger log.ContextLogger, tag string, options option.SelectorOutboundOptions) (*Selector, error) {
+func NewSelector(ctx context.Context, router adapter.Router, logger log.ContextLogger, tag string, options option.SelectorOutboundOptions) (*Selector, error) {
 	outbound := &Selector{
 		myOutboundAdapter: myOutboundAdapter{
 			protocol:     C.TypeSelector,
@@ -39,6 +41,7 @@ func NewSelector(router adapter.Router, logger log.ContextLogger, tag string, op
 			tag:          tag,
 			dependencies: options.Outbounds,
 		},
+		ctx:                          ctx,
 		tags:                         options.Outbounds,
 		defaultTag:                   options.Default,
 		outbounds:                    make(map[string]adapter.Outbound),
@@ -68,8 +71,9 @@ func (s *Selector) Start() error {
 	}
 
 	if s.tag != "" {
-		if clashServer := s.router.ClashServer(); clashServer != nil && clashServer.StoreSelected() {
-			selected := clashServer.CacheFile().LoadSelected(s.tag)
+		cacheFile := service.FromContext[adapter.CacheFile](s.ctx)
+		if cacheFile != nil {
+			selected := cacheFile.LoadSelected(s.tag)
 			if selected != "" {
 				detour, loaded := s.outbounds[selected]
 				if loaded {
@@ -111,8 +115,9 @@ func (s *Selector) SelectOutbound(tag string) bool {
 	}
 	s.selected = detour
 	if s.tag != "" {
-		if clashServer := s.router.ClashServer(); clashServer != nil && clashServer.StoreSelected() {
-			err := clashServer.CacheFile().StoreSelected(s.tag, tag)
+		cacheFile := service.FromContext[adapter.CacheFile](s.ctx)
+		if cacheFile != nil {
+			err := cacheFile.StoreSelected(s.tag, tag)
 			if err != nil {
 				s.logger.Error("store selected: ", err)
 			}

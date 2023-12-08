@@ -1,9 +1,9 @@
 package option
 
 import (
-	"github.com/sagernet/sing-box/common/json"
 	C "github.com/sagernet/sing-box/constant"
 	E "github.com/sagernet/sing/common/exceptions"
+	"github.com/sagernet/sing/common/json"
 	M "github.com/sagernet/sing/common/metadata"
 )
 
@@ -119,12 +119,14 @@ func (h *Outbound) UnmarshalJSON(bytes []byte) error {
 		v = &h.SelectorOptions
 	case C.TypeURLTest:
 		v = &h.URLTestOptions
+	case "":
+		return E.New("missing outbound type")
 	default:
 		return E.New("unknown outbound type: ", h.Type)
 	}
 	err = UnmarshallExcluded(bytes, (*_Outbound)(h), v)
 	if err != nil {
-		return E.Cause(err, "outbound options")
+		return err
 	}
 	return nil
 }
