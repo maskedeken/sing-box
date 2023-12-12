@@ -92,6 +92,7 @@ type Router struct {
 	v2rayServer                        adapter.V2RayServer
 	platformInterface                  platform.Interface
 	needWIFIState                      bool
+	needPackageManager                 bool
 	wifiState                          adapter.WIFIState
 	started                            bool
 }
@@ -127,6 +128,9 @@ func NewRouter(
 		pauseManager:          pause.ManagerFromContext(ctx),
 		platformInterface:     platformInterface,
 		needWIFIState:         hasRule(options.Rules, isWIFIRule) || hasDNSRule(dnsOptions.Rules, isWIFIDNSRule),
+		needPackageManager: C.IsAndroid && platformInterface == nil && common.Any(inbounds, func(inbound option.Inbound) bool {
+			return len(inbound.TunOptions.IncludePackage) > 0 || len(inbound.TunOptions.ExcludePackage) > 0
+		}),
 	}
 	router.dnsClient = dns.NewClient(dns.ClientOptions{
 		DisableCache:     dnsOptions.DNSClientOptions.DisableCache,
@@ -512,9 +516,8 @@ func (r *Router) Start() error {
 			needWIFIStateFromRuleSet = true
 		}
 	}
-	needPackageManager := C.IsAndroid && r.platformInterface == nil
-	if needProcessFromRuleSet || r.needFindProcess || needPackageManager {
-		if needPackageManager {
+	if needProcessFromRuleSet || r.needFindProcess || r.needPackageManager {
+		if C.IsAndroid && r.platformInterface == nil {
 			monitor.Start("initialize package manager")
 			packageManager, err := tun.NewPackageManager(r)
 			monitor.Finish()
