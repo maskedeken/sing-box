@@ -22,23 +22,23 @@ require (
 	github.com/oschwald/maxminddb-golang v1.12.0
 	github.com/sagernet/bbolt v0.0.0-20231014093535-ea5cb2fe9f0a
 	github.com/sagernet/cloudflare-tls v0.0.0-20231208171750-a4483c1b7cd1
-	github.com/sagernet/gomobile v0.1.0
+	github.com/sagernet/gomobile v0.1.1
 	github.com/sagernet/gvisor v0.0.0-20231209105102-8d27a30e436e
 	github.com/sagernet/quic-go v0.40.0
 	github.com/sagernet/reality v0.0.0-20230406110435-ee17307e7691
-	github.com/sagernet/sing v0.2.19-0.20231209022445-766839c00099
+	github.com/sagernet/sing v0.2.20-0.20231211084415-35e7014b0898
 	github.com/sagernet/sing-dns v0.1.11
-	github.com/sagernet/sing-mux v0.1.6-0.20231207143704-9f6c20fb5266
+	github.com/sagernet/sing-mux v0.1.6-0.20231208180947-9053c29513a2
 	github.com/sagernet/sing-quic v0.1.6-0.20231207143711-eb3cbf9ed054
 	github.com/sagernet/sing-shadowsocks v0.2.6
 	github.com/sagernet/sing-shadowsocks2 v0.1.6-0.20231207143709-50439739601a
 	github.com/sagernet/sing-shadowtls v0.1.4
-	github.com/sagernet/sing-tun v0.1.23-0.20231211051756-b13ad7c7bb36
+	github.com/sagernet/sing-tun v0.1.24-0.20231211145236-1cd52bf7fa00
 	github.com/sagernet/sing-vmess v0.1.8
 	github.com/sagernet/smux v0.0.0-20231208180855-7041f6ea79e7
 	github.com/sagernet/tfo-go v0.0.0-20231209031829-7b5343ac1dc6
 	github.com/sagernet/utls v1.5.4
-	github.com/sagernet/wireguard-go v0.0.0-20231209092712-9a439356a62e
+	github.com/sagernet/wireguard-go v0.0.0-20230807125731-5d4a7ef2dc5f
 	github.com/sagernet/ws v0.0.0-20231204124109-acfe8907c854
 	github.com/spf13/cobra v1.8.0
 	github.com/stretchr/testify v1.8.4
