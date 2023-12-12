@@ -27,6 +27,7 @@ func (o *Options) UnmarshalJSON(content []byte) error {
 	decoder.DisallowUnknownFields()
 	err := decoder.Decode((*_Options)(o))
 	if err == nil {
+		o.RawMessage = content
 		return nil
 	}
 	if syntaxError, isSyntaxError := err.(*json.SyntaxError); isSyntaxError {
@@ -35,7 +36,6 @@ func (o *Options) UnmarshalJSON(content []byte) error {
 		column := len(prefix) - strings.LastIndex(prefix, "\n") - 1
 		return E.Extend(syntaxError, "row ", row, ", column ", column)
 	}
-	o.RawMessage = content
 	return err
 }
 
