@@ -4,10 +4,6 @@ icon: material/alert-decagram
 
 #### 1.8.0-beta.2
 
-* Fixes and improvements
-
-#### 1.8.0-beta.1
-
 * Fix GSO support
 * Fixes and improvements
 
@@ -32,6 +28,10 @@ Also, starting with this release, uTLS requires at least Go 1.20.
 Updated `cloudflare-tls`, `gomobile`, `smux`, `tfo-go` and `wireguard-go` to latest, and `gvisor` to `20231204.0`
 
 This may break something, good luck!
+
+#### 1.7.5
+
+* Fixes and improvements
 
 #### 1.7.4
 
