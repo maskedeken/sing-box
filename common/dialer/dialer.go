@@ -10,7 +10,7 @@ import (
 )
 
 func New(router adapter.Router, options option.DialerOptions) (N.Dialer, error) {
-	if options.IsWireGuradListener {
+	if options.IsWireGuardListener {
 		return NewDefault(router, options)
 	}
 	var (

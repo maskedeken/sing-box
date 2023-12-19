@@ -76,7 +76,7 @@ func NewWireGuard(ctx context.Context, router adapter.Router, logger log.Context
 		if options.GSO && options.Detour != "" {
 			return nil, E.New("gso is conflict with detour")
 		}
-		options.IsWireGuradListener = true
+		options.IsWireGuardListener = true
 		outbound.useStdNetBind = true
 	}
 	listener, err := dialer.New(router, options.DialerOptions)
