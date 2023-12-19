@@ -17,6 +17,7 @@ import (
 	"github.com/sagernet/sing-box/log"
 	"github.com/sagernet/sing-box/option"
 	"github.com/sagernet/sing-dns"
+	"github.com/sagernet/sing/common/bufio"
 	E "github.com/sagernet/sing/common/exceptions"
 	M "github.com/sagernet/sing/common/metadata"
 	N "github.com/sagernet/sing/common/network"
@@ -214,6 +215,7 @@ func (h *Direct) ListenPacket(ctx context.Context, destination M.Socksaddr) (net
 	ctx, metadata := adapter.ExtendContext(ctx)
 	metadata.Outbound = h.tag
 	metadata.Destination = destination
+	originDestination := destination
 	switch h.overrideOption {
 	case 1:
 		destination = h.overrideDestination
@@ -229,7 +231,14 @@ func (h *Direct) ListenPacket(ctx context.Context, destination M.Socksaddr) (net
 	} else {
 		h.logger.InfoContext(ctx, "outbound packet connection to ", destination)
 	}
-	return h.newPacketConn(ctx, destination)
+	conn, err := h.dialer.ListenPacket(ctx, destination)
+	if err != nil {
+		return nil, err
+	}
+	if originDestination != destination {
+		conn = bufio.NewNATPacketConn(bufio.NewPacketConn(conn), destination, originDestination)
+	}
+	return conn, nil
 }
 
 func (h *Direct) NewConnection(ctx context.Context, conn net.Conn, metadata adapter.InboundContext) error {

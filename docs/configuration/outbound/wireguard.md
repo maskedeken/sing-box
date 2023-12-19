@@ -79,7 +79,7 @@ Custom interface name for system interface.
 
     Only supported on Linux.
 
-Enable generic segmentation offload for system interface.
+Try to enable generic segmentation offload.
 
 #### local_address
 

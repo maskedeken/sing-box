@@ -67,7 +67,7 @@ icon: material/new-box
 
     仅支持 Linux。
 
-为系统接口启用通用分段卸载。
+尝试启用通用分段卸载。
 
 #### local_address
 

@@ -122,7 +122,7 @@ type DialerOptions struct {
 	UDPFragmentDefault  bool           `json:"-"`
 	DomainStrategy      DomainStrategy `json:"domain_strategy,omitempty"`
 	FallbackDelay       Duration       `json:"fallback_delay,omitempty"`
-	IsWireGuradListener bool           `json:"_"`
+	IsWireGuardListener bool           `json:"-"`
 }
 
 func (o *DialerOptions) TakeDialerOptions() DialerOptions {
@@ -133,6 +133,11 @@ func (o *DialerOptions) ReplaceDialerOptions(options DialerOptions) {
 	*o = options
 }
 
+type ServerOptionsWrapper interface {
+	TakeServerOptions() ServerOptions
+	ReplaceServerOptions(options ServerOptions)
+}
+
 type ServerOptions struct {
 	Server     string `json:"server"`
 	ServerPort uint16 `json:"server_port"`
@@ -140,4 +145,12 @@ type ServerOptions struct {
 
 func (o ServerOptions) Build() M.Socksaddr {
 	return M.ParseSocksaddrHostPort(o.Server, o.ServerPort)
+}
+
+func (o *ServerOptions) TakeServerOptions() ServerOptions {
+	return *o
+}
+
+func (o *ServerOptions) ReplaceServerOptions(options ServerOptions) {
+	*o = options
 }
