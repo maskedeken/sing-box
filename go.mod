@@ -26,10 +26,10 @@ require (
 	github.com/sagernet/gvisor v0.0.0-20231209105102-8d27a30e436e
 	github.com/sagernet/quic-go v0.40.0
 	github.com/sagernet/reality v0.0.0-20230406110435-ee17307e7691
-	github.com/sagernet/sing v0.3.0-beta.6
+	github.com/sagernet/sing v0.3.0-beta.7
 	github.com/sagernet/sing-dns v0.1.12-beta.1
 	github.com/sagernet/sing-mux v0.1.6-beta.3
-	github.com/sagernet/sing-quic v0.1.6-beta.1
+	github.com/sagernet/sing-quic v0.1.6-beta.2
 	github.com/sagernet/sing-shadowsocks v0.2.6
 	github.com/sagernet/sing-shadowsocks2 v0.1.6-beta.1
 	github.com/sagernet/sing-shadowtls v0.1.4
@@ -57,8 +57,6 @@ require (
 replace github.com/sagernet/sing-shadowtls => github.com/maskedeken/sing-shadowtls v0.0.0-20230726015628-51b045336623
 
 replace github.com/sagernet/sing-shadowsocks2 => github.com/maskedeken/sing-shadowsocks2 v0.0.0-20231216065316-ba43161952bf
-
-replace github.com/sagernet/sing-quic => github.com/maskedeken/sing-quic v0.0.0-20231216065803-777fd9f123a4
 
 require (
 	github.com/ajg/form v1.5.1 // indirect

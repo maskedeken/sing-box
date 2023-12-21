@@ -2,6 +2,10 @@
 icon: material/alert-decagram
 ---
 
+#### 1.8.0-rc.1
+
+* Fixes and improvements
+
 #### 1.8.0-beta.9
 
 * Add simple loopback detect

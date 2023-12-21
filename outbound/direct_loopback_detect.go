@@ -27,10 +27,17 @@ func (l *loopBackDetector) NewConn(conn net.Conn) net.Conn {
 	if !connAddr.IsValid() {
 		return conn
 	}
-	l.connAccess.Lock()
-	l.connMap[connAddr] = true
-	l.connAccess.Unlock()
-	return &loopBackDetectWrapper{Conn: conn, detector: l, connAddr: connAddr}
+	if udpConn, isUDPConn := conn.(abstractUDPConn); isUDPConn {
+		l.packetConnAccess.Lock()
+		l.packetConnMap[connAddr] = true
+		l.packetConnAccess.Unlock()
+		return &loopBackDetectUDPWrapper{abstractUDPConn: udpConn, detector: l, connAddr: connAddr}
+	} else {
+		l.connAccess.Lock()
+		l.connMap[connAddr] = true
+		l.connAccess.Unlock()
+		return &loopBackDetectWrapper{Conn: conn, detector: l, connAddr: connAddr}
+	}
 }
 
 func (l *loopBackDetector) NewPacketConn(conn net.PacketConn) net.PacketConn {
@@ -110,4 +117,37 @@ func (w *loopBackDetectPacketWrapper) WriterReplaceable() bool {
 
 func (w *loopBackDetectPacketWrapper) Upstream() any {
 	return w.PacketConn
+}
+
+type abstractUDPConn interface {
+	net.Conn
+	net.PacketConn
+}
+
+type loopBackDetectUDPWrapper struct {
+	abstractUDPConn
+	detector  *loopBackDetector
+	connAddr  netip.AddrPort
+	closeOnce sync.Once
+}
+
+func (w *loopBackDetectUDPWrapper) Close() error {
+	w.closeOnce.Do(func() {
+		w.detector.packetConnAccess.Lock()
+		delete(w.detector.packetConnMap, w.connAddr)
+		w.detector.packetConnAccess.Unlock()
+	})
+	return w.abstractUDPConn.Close()
+}
+
+func (w *loopBackDetectUDPWrapper) ReaderReplaceable() bool {
+	return true
+}
+
+func (w *loopBackDetectUDPWrapper) WriterReplaceable() bool {
+	return true
+}
+
+func (w *loopBackDetectUDPWrapper) Upstream() any {
+	return w.abstractUDPConn
 }
