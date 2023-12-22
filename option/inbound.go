@@ -1,11 +1,8 @@
 package option
 
 import (
-<<<<<<< HEAD
-=======
 	"time"
 
->>>>>>> c16b017cd14f1dff30b1dd639e5ab4d46250fa04
 	C "github.com/sagernet/sing-box/constant"
 	E "github.com/sagernet/sing/common/exceptions"
 	"github.com/sagernet/sing/common/json"
