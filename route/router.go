@@ -195,7 +195,7 @@ func NewRouter(
 			if server.Detour == "" {
 				detour = dialer.NewRouter(router)
 			} else {
-				detour = dialer.NewDetour(router, server.Detour, true)
+				detour = dialer.NewDetour(router, server.Detour)
 			}
 			switch server.Address {
 			case "local":

@@ -30,15 +30,14 @@ icon: material/alert-decagram
 
 ### 字段
 
-| 键          | 格式                                |
-|------------|-----------------------------------|
-| `geoip`    | [GeoIP](./geoip/)                  |
-| `geosite`  | [Geosite](./geosite/)              |
-
+| 键         | 格式                    |
+|-----------|-----------------------|
+| `geoip`   | [GeoIP](./geoip/)     |
+| `geosite` | [Geosite](./geosite/) |
 
 #### rule
 
-一组 [路由规则](./rule/)。
+一组 [路由规则](./rule/)    。
 
 #### rule_set
 

@@ -31,4 +31,4 @@ Version of Rule Set, must be `1`.
 
 ==Required==
 
-List of [Headless Rule](./headless-rule/).
+List of [Headless Rule](./headless-rule.md/).
