@@ -15,8 +15,8 @@
 
 ### Fields
 
-| Type          | Format                       | Injectable |
-|---------------|------------------------------|------------|
+| Type          | Format                        | Injectable |
+|---------------|-------------------------------|------------|
 | `direct`      | [Direct](./direct/)           | X          |
 | `mixed`       | [Mixed](./mixed/)             | TCP        |
 | `socks`       | [SOCKS](./socks/)             | TCP        |
