@@ -2,11 +2,14 @@
 icon: material/alert-decagram
 ---
 
-#### 1.8.0-rc.3
+#### 1.8.0-rc.4
 
 * Fixes and improvements
-* Fix V2Ray transport `path` validation behavior **1**
 
+#### 1.8.0-rc.3
+
+* Fix V2Ray transport `path` validation behavior **1**
+* Fixes and improvements
 
 **1**:
 
