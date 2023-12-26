@@ -29,7 +29,7 @@ type Client struct {
 	serverAddr M.Socksaddr
 	transport  http.RoundTripper
 	http2      bool
-	url        *url.URL
+	requestURL url.URL
 	host       []string
 	method     string
 	headers    http.Header
@@ -81,6 +81,7 @@ func NewClient(ctx context.Context, dialer N.Dialer, serverAddr M.Socksaddr, opt
 		ctx:        ctx,
 		dialer:     dialer,
 		serverAddr: serverAddr,
+		requestURL: requestURL,
 		host:       options.Host,
 		method:     options.Method,
 		headers:    options.Headers.Build(),
@@ -105,7 +106,7 @@ func (c *Client) dialHTTP(ctx context.Context) (net.Conn, error) {
 
 	request := &http.Request{
 		Method: c.method,
-		URL:    c.url,
+		URL:    &c.requestURL,
 		Header: c.headers.Clone(),
 	}
 	switch hostLen := len(c.host); hostLen {
@@ -125,7 +126,7 @@ func (c *Client) dialHTTP2(ctx context.Context) (net.Conn, error) {
 	request := &http.Request{
 		Method: c.method,
 		Body:   pipeInReader,
-		URL:    c.url,
+		URL:    &c.requestURL,
 		Header: c.headers.Clone(),
 	}
 	request = request.WithContext(ctx)
