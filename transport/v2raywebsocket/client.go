@@ -124,6 +124,6 @@ func (c *Client) DialContext(ctx context.Context) (net.Conn, error) {
 		}
 		return conn, nil
 	} else {
-		return &EarlyWebsocketConn{Client: c, ctx: context.Background(), create: make(chan struct{})}, nil
+		return &EarlyWebsocketConn{Client: c, ctx: ctx, create: make(chan struct{})}, nil
 	}
 }
