@@ -278,6 +278,7 @@ func NewRouter(
 			transports = append(transports, common.Must1(dns.CreateTransport(dns.TransportOptions{
 				Context: ctx,
 				Name:    "local",
+				Address: "local",
 				Dialer:  common.Must1(dialer.NewDefault(router, option.DialerOptions{})),
 			})))
 		}
