@@ -104,8 +104,8 @@ github.com/sagernet/cloudflare-tls v0.0.0-20231208171750-a4483c1b7cd1 h1:YbmpqPQ
 github.com/sagernet/cloudflare-tls v0.0.0-20231208171750-a4483c1b7cd1/go.mod h1:J2yAxTFPDjrDPhuAi9aWFz2L3ox9it4qAluBBbN0H5k=
 github.com/sagernet/gomobile v0.1.1 h1:3vihRGyUfFTToHMeeak0UK6/ldt2MV2bcWKFi2VyECU=
 github.com/sagernet/gomobile v0.1.1/go.mod h1:Pqq2+ZVvs10U7xK+UwJgwYWUykewi8H6vlslAO73n9E=
-github.com/sagernet/gvisor v0.0.0-20231209105102-8d27a30e436e h1:DOkjByVeAR56dkszjnMZke4wr7yM/1xHaJF3G9olkEE=
-github.com/sagernet/gvisor v0.0.0-20231209105102-8d27a30e436e/go.mod h1:fLxq/gtp0qzkaEwywlRRiGmjOK5ES/xUzyIKIFP2Asw=
+github.com/sagernet/gvisor v0.0.0-20240214044702-a3d61928a32f h1:7hj/CcCkUiC6gfhX4D+QNyodmhfurW2L2Q4qzJ1bPnI=
+github.com/sagernet/gvisor v0.0.0-20240214044702-a3d61928a32f/go.mod h1:bLmnT/4M4+yKB6F7JtRsbUr+YJ64yXwFIygjyYDFQzQ=
 github.com/sagernet/netlink v0.0.0-20220905062125-8043b4a9aa97 h1:iL5gZI3uFp0X6EslacyapiRz7LLSJyr4RajF/BhMVyE=
 github.com/sagernet/netlink v0.0.0-20220905062125-8043b4a9aa97/go.mod h1:xLnfdiJbSp8rNqYEdIW/6eDO4mVoogml14Bh2hSiFpM=
 github.com/sagernet/quic-go v0.41.0-beta.2 h1:NtFC1Ief+SYJkfRq68D1OEqZQTNh2jYSpyRLhjT+m6U=
@@ -113,8 +113,8 @@ github.com/sagernet/quic-go v0.41.0-beta.2/go.mod h1:X10Mf9DVHuSEReOLov/XuflD13M
 github.com/sagernet/reality v0.0.0-20230406110435-ee17307e7691 h1:5Th31OC6yj8byLGkEnIYp6grlXfo1QYUfiYFGjewIdc=
 github.com/sagernet/reality v0.0.0-20230406110435-ee17307e7691/go.mod h1:B8lp4WkQ1PwNnrVMM6KyuFR20pU8jYBD+A4EhJovEXU=
 github.com/sagernet/sing v0.2.18/go.mod h1:OL6k2F0vHmEzXz2KW19qQzu172FDgSbUSODylighuVo=
-github.com/sagernet/sing v0.3.1-beta.1 h1:5s4hUokrd58xgmiT2baXQJmZDUvjf7qzXXIqVbPTa3o=
-github.com/sagernet/sing v0.3.1-beta.1/go.mod h1:9pfuAH6mZfgnz/YjP6xu5sxx882rfyjpcrTdUpd6w3g=
+github.com/sagernet/sing v0.3.1-beta.2 h1:QEbBAXStZ/l4fPKbTkJZZrR/hPDOstEsZ5B9JbvkZO4=
+github.com/sagernet/sing v0.3.1-beta.2/go.mod h1:qHySJ7u8po9DABtMYEkNBcOumx7ZZJf/fbv2sfTkNHE=
 github.com/sagernet/sing-dns v0.2.0-beta.4 h1:lzfESvGHP0xVNneuVnOdhueZhi9ekg1TruBF2UN2epU=
 github.com/sagernet/sing-dns v0.2.0-beta.4/go.mod h1:IxOqfSb6Zt6UVCy8fJpDxb2XxqzHUytNqeOuJfaiLu8=
 github.com/sagernet/sing-mux v0.2.0 h1:4C+vd8HztJCWNYfufvgL49xaOoOHXty2+EAjnzN3IYo=
@@ -123,8 +123,8 @@ github.com/sagernet/sing-quic v0.1.9-beta.1 h1:rCmgLUq2d4EA643EAvjbfUYYVMPCss0Gp
 github.com/sagernet/sing-quic v0.1.9-beta.1/go.mod h1:F4AXCZiwtRtYdLUTjVMO6elTpA/lLJe17sFlHhHmDVw=
 github.com/sagernet/sing-shadowsocks v0.2.6 h1:xr7ylAS/q1cQYS8oxKKajhuQcchd5VJJ4K4UZrrpp0s=
 github.com/sagernet/sing-shadowsocks v0.2.6/go.mod h1:j2YZBIpWIuElPFL/5sJAj470bcn/3QQ5lxZUNKLDNAM=
-github.com/sagernet/sing-tun v0.2.2-beta.1 h1:B/P2TbV4ORNyZbLad4V74ZVCkgcsZG7vYqugEmof/Gc=
-github.com/sagernet/sing-tun v0.2.2-beta.1/go.mod h1:w1HTPPEL575m+Ob3GOIWaTs3ZrTdgLIwoldce/p3WPU=
+github.com/sagernet/sing-tun v0.2.2-beta.3 h1:LEzxRkn10iicWdZAlIKtc0/G9hgzrt/WMZSkRtsbzCw=
+github.com/sagernet/sing-tun v0.2.2-beta.3/go.mod h1:TaUYOzyBWK43Si6TadJ4gc7fj2iYZ7kxcp6CzzKey3E=
 github.com/sagernet/sing-vmess v0.1.8 h1:XVWad1RpTy9b5tPxdm5MCU8cGfrTGdR8qCq6HV2aCNc=
 github.com/sagernet/sing-vmess v0.1.8/go.mod h1:vhx32UNzTDUkNwOyIjcZQohre1CaytquC5mPplId8uA=
 github.com/sagernet/smux v0.0.0-20231208180855-7041f6ea79e7 h1:DImB4lELfQhplLTxeq2z31Fpv8CQqqrUwTbrIRumZqQ=
@@ -206,8 +206,8 @@ golang.zx2c4.com/wireguard/wgctrl v0.0.0-20230429144221-925a1e7659e6 h1:CawjfCvY
 golang.zx2c4.com/wireguard/wgctrl v0.0.0-20230429144221-925a1e7659e6/go.mod h1:3rxYc4HtVcSG9gVaTs2GEBdehh+sYPOwKtyUWEOTb80=
 google.golang.org/genproto/googleapis/rpc v0.0.0-20231106174013-bbf56f31fb17 h1:Jyp0Hsi0bmHXG6k9eATXoYtjd6e2UzZ1SCn/wIupY14=
 google.golang.org/genproto/googleapis/rpc v0.0.0-20231106174013-bbf56f31fb17/go.mod h1:oQ5rr10WTTMvP4A36n8JpR1OrO1BEiV4f78CneXZxkA=
-google.golang.org/grpc v1.61.0 h1:TOvOcuXn30kRao+gfcvsebNEa5iZIiLkisYEkf7R7o0=
-google.golang.org/grpc v1.61.0/go.mod h1:VUbo7IFqmF1QtCAstipjG0GIoq49KvMe9+h1jFLBNJs=
+google.golang.org/grpc v1.61.1 h1:kLAiWrZs7YeDM6MumDe7m3y4aM6wacLzM1Y/wiLP9XY=
+google.golang.org/grpc v1.61.1/go.mod h1:VUbo7IFqmF1QtCAstipjG0GIoq49KvMe9+h1jFLBNJs=
 google.golang.org/protobuf v1.26.0-rc.1/go.mod h1:jlhhOSvTdKEhbULTjvd4ARK9grFBp09yW+WbY/TyQbw=
 google.golang.org/protobuf v1.26.0/go.mod h1:9q0QmTI4eRPtz6boOQmLYwt+qCgq0jsYwAQnmE0givc=
 google.golang.org/protobuf v1.32.0 h1:pPC6BG5ex8PDFnkbrGU3EixyhKcQ2aDuBS36lqK/C7I=
