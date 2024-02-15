@@ -2,6 +2,16 @@
 icon: material/alert-decagram
 ---
 
+#### 1.9.0-alpha.8
+
+* Add rejected DNS response cache support **1**
+* Fixes and improvements
+
+**1**:
+
+The new feature allows you to cache the check results of
+[Address filter DNS rule items](/configuration/dns/rule/#address-filter-fields) until expiration.
+
 #### 1.9.0-alpha.7
 
 * Update gVisor to 20240206.0
