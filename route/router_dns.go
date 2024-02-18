@@ -139,7 +139,9 @@ func (r *Router) Exchange(ctx context.Context, message *mDNS.Msg) (*mDNS.Msg, er
 			}
 			cancel()
 			if err != nil {
-				if errors.Is(err, dns.ErrResponseRejected) {
+				if errors.Is(err, dns.ErrResponseRejectedCached) {
+					r.dnsLogger.DebugContext(ctx, E.Cause(err, "response rejected for ", formatQuestion(message.Question[0].String())), " (cached)")
+				} else if errors.Is(err, dns.ErrResponseRejected) {
 					r.dnsLogger.DebugContext(ctx, E.Cause(err, "response rejected for ", formatQuestion(message.Question[0].String())))
 				} else if len(message.Question) > 0 {
 					r.dnsLogger.ErrorContext(ctx, E.Cause(err, "exchange failed for ", formatQuestion(message.Question[0].String())))
@@ -210,7 +212,9 @@ func (r *Router) Lookup(ctx context.Context, domain string, strategy dns.DomainS
 		}
 		cancel()
 		if err != nil {
-			if errors.Is(err, dns.ErrResponseRejected) {
+			if errors.Is(err, dns.ErrResponseRejectedCached) {
+				r.dnsLogger.DebugContext(ctx, "response rejected for ", domain, " (cached)")
+			} else if errors.Is(err, dns.ErrResponseRejected) {
 				r.dnsLogger.DebugContext(ctx, "response rejected for ", domain)
 			} else {
 				r.dnsLogger.ErrorContext(ctx, E.Cause(err, "lookup failed for ", domain))
