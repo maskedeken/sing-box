@@ -2,6 +2,18 @@
 icon: material/alert-decagram
 ---
 
+#### 1.8.7
+
+* Fixes and improvements
+
+#### 1.8.6
+
+* Fixes and improvements
+
+#### 1.8.5
+
+* Fixes and improvements
+
 #### 1.8.4
 
 * Fixes and improvements
