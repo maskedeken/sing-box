@@ -2,6 +2,10 @@
 icon: material/alert-decagram
 ---
 
+#### 1.9.0-beta.7
+
+* Fixes and improvements
+
 #### 1.9.0-beta.6
 
 * Fix address filter DNS rule items **1**
