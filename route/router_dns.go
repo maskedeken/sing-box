@@ -103,6 +103,7 @@ func (r *Router) Exchange(ctx context.Context, message *mDNS.Msg) (*mDNS.Msg, er
 	if !cached {
 		var metadata *adapter.InboundContext
 		ctx, metadata = adapter.AppendContext(ctx)
+		metadata.Destination = M.Socksaddr{}
 		if len(message.Question) > 0 {
 			metadata.QueryType = message.Question[0].Qtype
 			switch metadata.QueryType {
@@ -185,6 +186,7 @@ func (r *Router) Lookup(ctx context.Context, domain string, strategy dns.DomainS
 	}
 	r.dnsLogger.DebugContext(ctx, "lookup domain ", domain)
 	ctx, metadata := adapter.AppendContext(ctx)
+	metadata.Destination = M.Socksaddr{}
 	metadata.Domain = domain
 	var (
 		transport         dns.Transport
