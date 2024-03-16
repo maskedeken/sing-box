@@ -15,7 +15,7 @@ MAIN_PARAMS = $(PARAMS) -tags $(TAGS)
 MAIN = ./cmd/sing-box
 PREFIX ?= $(shell go env GOPATH)
 
-.PHONY: test release docs
+.PHONY: test release docs build
 
 build:
 	go build $(MAIN_PARAMS) $(MAIN)
@@ -64,7 +64,7 @@ proto_install:
 	go install -v google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
 
 release:
-	go run ./cmd/internal/build goreleaser release --clean --skip-publish || exit 1
+	go run ./cmd/internal/build goreleaser release --clean --skip publish --skip fury
 	mkdir dist/release
 	mv dist/*.tar.gz \
 		dist/*.zip \
@@ -76,6 +76,9 @@ release:
 		dist/release
 	ghr --replace --draft --prerelease -p 3 "v${VERSION}" dist/release
 	rm -r dist/release
+
+release_repo:
+	go run ./cmd/internal/build goreleaser release -f .goreleaser.fury.yaml --clean
 
 release_install:
 	go install -v github.com/goreleaser/goreleaser@latest
