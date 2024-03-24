@@ -64,7 +64,7 @@ proto_install:
 	go install -v google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
 
 release:
-	go run ./cmd/internal/build goreleaser release --clean --skip publish --skip fury
+	go run ./cmd/internal/build goreleaser release --clean --skip publish
 	mkdir dist/release
 	mv dist/*.tar.gz \
 		dist/*.zip \
@@ -88,7 +88,7 @@ update_android_version:
 	go run ./cmd/internal/update_android_version
 
 build_android:
-	cd ../sing-box-for-android && ./gradlew :app:assemblePlayRelease && ./gradlew :app:assembleOtherRelease && ./gradlew --stop
+	cd ../sing-box-for-android && ./gradlew :app:clean :app:assemblePlayRelease :app:assembleOtherRelease && ./gradlew --stop
 
 upload_android:
 	mkdir -p dist/release_android
