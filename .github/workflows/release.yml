@@ -1,0 +1,78 @@
+name: Release APK
+
+on:
+  push:
+    tags:
+      - '*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release Tag'
+        required: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        submodules: 'recursive'
+
+    - name: Setup Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+
+    - name: Setup Golang
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.22.2'
+
+    - name: Setup Android environment
+      uses: android-actions/setup-android@v3
+
+    - name: Install gomobile
+      run: |
+        go install github.com/sagernet/gomobile/cmd/gomobile@v0.1.3
+        echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
+
+    - name: Set VERSION_NAME
+      run: |
+        VERSION_NAME=$(cat "$GITHUB_WORKSPACE/versionName.txt")
+        echo "VERSION_NAME=$VERSION_NAME" >> $GITHUB_ENV
+
+    - name: Build Box
+      run: |
+        mkdir -p clients/android/app/libs
+        go mod download
+        gomobile init
+        gomobile bind -o clients/android/app/libs/libbox.aar -v -androidapi 21 -trimpath -ldflags="-s -w -buildid= -X github.com/sagernet/sing-box/constant.Version=${{ env.VERSION_NAME }}" -libname=box -buildvcs=false -javapkg=io.nekohasekai -tags="with_conntrack,with_gvisor,with_quic,with_wireguard,with_utls,with_clash_api,with_ech" ./experimental/libbox
+
+    - name: Build APK
+      run: |
+        cd clients/android
+        chmod 755 gradlew
+        export GO_VERSION=$(go version | awk '{print $3}')
+        sed -i "s/^VERSION_NAME=.*/VERSION_NAME=${{ env.VERSION_NAME }}/" version.properties
+        sed -i "s/^GO_VERSION=.*/GO_VERSION=$GO_VERSION/" version.properties
+        echo "${{ secrets.LOCAL_PROPERTIES }}" > /tmp/local_properties.txt
+        base64 -d /tmp/local_properties.txt > local.properties
+        echo "${{ secrets.KS_FILE }}" > /tmp/xray_base64.txt
+        base64 -d /tmp/xray_base64.txt > app/release.keystore
+        ./gradlew assembleOtherRelease
+
+    - name: Set tag name
+      id: tag_name
+      run: echo "::set-output name=tag_name::${{ github.event.inputs.tag || github.ref_name }}"
+
+    - name: Publish release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ steps.tag_name.outputs.tag_name }}
+        name: ${{ env.VERSION_NAME }}
+        prerelease: false
+        draft: false
+        files: "${{ github.workspace }}/clients/android/app/build/outputs/apk/other/release/*.apk"
+        body_path: ${{ github.workspace }}/metadata/en-US/changelogs/${{ steps.tag_name.outputs.tag_name }}.txt
