@@ -72,7 +72,7 @@ jobs:
       with:
         tag_name: ${{ steps.tag_name.outputs.tag_name }}
         name: ${{ env.VERSION_NAME }}
-        prerelease: true
+        prerelease: false
         draft: false
         files: "${{ github.workspace }}/clients/android/app/build/outputs/apk/other/release/*.apk"
         body_path: ${{ github.workspace }}/metadata/en-US/changelogs/${{ steps.tag_name.outputs.tag_name }}.txt
