@@ -7,10 +7,7 @@ icon: material/book-lock-open
 TunnelVision is an attack that uses DHCP option 121 to set higher priority routes
 so that traffic does not go through the VPN.
 
-Reference:
-
-* https://nvd.nist.gov/vuln/detail/CVE-2024-3661
-* https://arstechnica.com/security/2024/05/novel-attack-against-virtually-all-vpn-apps-neuters-their-entire-purpose/
+Reference: https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-3661
 
 ## Status
 

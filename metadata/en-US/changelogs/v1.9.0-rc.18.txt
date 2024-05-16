@@ -1,0 +1,5 @@
+- Add custom prefix support in EDNS0 client subnet options
+- Fix hysteria2 crash
+- Fix store_rdrc corrupted
+- Update quic-go to v0.43.1
+- Fixes and improvements
