@@ -29,7 +29,7 @@ require (
 	github.com/sagernet/sing v0.3.8
 	github.com/sagernet/sing-dns v0.1.14
 	github.com/sagernet/sing-mux v0.2.0
-	github.com/sagernet/sing-quic v0.1.12
+	github.com/sagernet/sing-quic v0.1.15
 	github.com/sagernet/sing-shadowsocks v0.2.6
 	github.com/sagernet/sing-shadowsocks2 v0.2.0
 	github.com/sagernet/sing-shadowtls v0.1.4
@@ -58,7 +58,7 @@ replace github.com/sagernet/sing-shadowtls => github.com/maskedeken/sing-shadowt
 
 replace github.com/sagernet/sing-shadowsocks2 => github.com/maskedeken/sing-shadowsocks2 v0.0.0-20240113115153-494ddd0e4d96
 
-replace github.com/sagernet/sing-quic => github.com/maskedeken/sing-quic v0.0.0-20240428044635-99c39bf7adf9
+replace github.com/sagernet/sing-quic => github.com/maskedeken/sing-quic v0.0.0-20240520052601-721a878e3dc6
 
 require (
 	github.com/ajg/form v1.5.1 // indirect
