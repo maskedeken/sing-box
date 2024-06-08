@@ -352,14 +352,6 @@ func NewRouter(
 		router.interfaceMonitor = interfaceMonitor
 	}
 
-	if runtime.GOOS == "windows" {
-		powerListener, err := winpowrprof.NewEventListener(router.notifyWindowsPowerEvent)
-		if err != nil {
-			return nil, E.Cause(err, "initialize power listener")
-		}
-		router.powerListener = powerListener
-	}
-
 	if ntpOptions.Enabled {
 		ntpDialer, err := dialer.New(router, ntpOptions.DialerOptions)
 		if err != nil {
@@ -402,20 +394,17 @@ func (r *Router) Initialize(inbounds []adapter.Inbound, outbounds []adapter.Outb
 			defaultOutboundForPacketConnection = detour
 		}
 	}
-	var index, packetIndex int
 	if defaultOutboundForConnection == nil {
-		for i, detour := range outbounds {
+		for _, detour := range outbounds {
 			if common.Contains(detour.Network(), N.NetworkTCP) {
-				index = i
 				defaultOutboundForConnection = detour
 				break
 			}
 		}
 	}
 	if defaultOutboundForPacketConnection == nil {
-		for i, detour := range outbounds {
+		for _, detour := range outbounds {
 			if common.Contains(detour.Network(), N.NetworkUDP) {
-				packetIndex = i
 				defaultOutboundForPacketConnection = detour
 				break
 			}
@@ -431,22 +420,6 @@ func (r *Router) Initialize(inbounds []adapter.Inbound, outbounds []adapter.Outb
 		}
 		outbounds = append(outbounds, detour)
 		outboundByTag[detour.Tag()] = detour
-	}
-	if defaultOutboundForConnection != defaultOutboundForPacketConnection {
-		var description string
-		if defaultOutboundForConnection.Tag() != "" {
-			description = defaultOutboundForConnection.Tag()
-		} else {
-			description = F.ToString(index)
-		}
-		var packetDescription string
-		if defaultOutboundForPacketConnection.Tag() != "" {
-			packetDescription = defaultOutboundForPacketConnection.Tag()
-		} else {
-			packetDescription = F.ToString(packetIndex)
-		}
-		r.logger.Info("using ", defaultOutboundForConnection.Type(), "[", description, "] as default outbound for connection")
-		r.logger.Info("using ", defaultOutboundForPacketConnection.Type(), "[", packetDescription, "] as default outbound for packet connection")
 	}
 	r.inboundByTag = inboundByTag
 	r.outbounds = outbounds
@@ -605,6 +578,15 @@ func (r *Router) Start() error {
 			} else {
 				r.processSearcher = searcher
 			}
+		}
+	}
+
+	if runtime.GOOS == "windows" {
+		powerListener, err := winpowrprof.NewEventListener(r.notifyWindowsPowerEvent)
+		if err == nil {
+			r.powerListener = powerListener
+		} else {
+			r.logger.Warn("initialize power listener: ", err)
 		}
 	}
 
@@ -1121,6 +1103,9 @@ func (r *Router) AutoDetectInterfaceFunc() control.Func {
 	if r.platformInterface != nil && r.platformInterface.UsePlatformAutoDetectInterfaceControl() {
 		return r.platformInterface.AutoDetectInterfaceControl()
 	} else {
+		if r.interfaceMonitor == nil {
+			return nil
+		}
 		return control.BindToInterfaceFunc(r.InterfaceFinder(), func(network string, address string) (interfaceName string, interfaceIndex int, err error) {
 			remoteAddr := M.ParseSocksaddr(address).Addr
 			if C.IsLinux {
