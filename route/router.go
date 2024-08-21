@@ -131,7 +131,7 @@ func NewRouter(
 		pauseManager:          service.FromContext[pause.Manager](ctx),
 		platformInterface:     platformInterface,
 		needWIFIState:         hasRule(options.Rules, isWIFIRule) || hasDNSRule(dnsOptions.Rules, isWIFIDNSRule),
-		needPackageManager: C.IsAndroid && platformInterface == nil && common.Any(inbounds, func(inbound option.Inbound) bool {
+		needPackageManager: common.Any(inbounds, func(inbound option.Inbound) bool {
 			return len(inbound.TunOptions.IncludePackage) > 0 || len(inbound.TunOptions.ExcludePackage) > 0
 		}),
 	}
@@ -538,11 +538,13 @@ func (r *Router) Start() error {
 		if err != nil {
 			return E.Cause(err, "create package manager")
 		}
-		monitor.Start("start package manager")
-		err = packageManager.Start()
-		monitor.Finish()
-		if err != nil {
-			return E.Cause(err, "start package manager")
+		if r.needPackageManager {
+			monitor.Start("start package manager")
+			err = packageManager.Start()
+			monitor.Finish()
+			if err != nil {
+				return E.Cause(err, "start package manager")
+			}
 		}
 		r.packageManager = packageManager
 	}
@@ -675,20 +677,30 @@ func (r *Router) PostStart() error {
 		}
 		ruleSetStartContext.Close()
 	}
-	var (
-		needProcessFromRuleSet   bool
-		needWIFIStateFromRuleSet bool
-	)
+	needFindProcess := r.needFindProcess
+	needWIFIState := r.needWIFIState
 	for _, ruleSet := range r.ruleSets {
 		metadata := ruleSet.Metadata()
 		if metadata.ContainsProcessRule {
-			needProcessFromRuleSet = true
+			needFindProcess = true
 		}
 		if metadata.ContainsWIFIRule {
-			needWIFIStateFromRuleSet = true
+			needWIFIState = true
 		}
 	}
-	if needProcessFromRuleSet || r.needFindProcess {
+	if C.IsAndroid && r.platformInterface == nil && !r.needPackageManager {
+		if needFindProcess {
+			monitor.Start("start package manager")
+			err := r.packageManager.Start()
+			monitor.Finish()
+			if err != nil {
+				return E.Cause(err, "start package manager")
+			}
+		} else {
+			r.packageManager = nil
+		}
+	}
+	if needFindProcess {
 		if r.platformInterface != nil {
 			r.processSearcher = r.platformInterface
 		} else {
@@ -707,7 +719,24 @@ func (r *Router) PostStart() error {
 			}
 		}
 	}
-	if (needWIFIStateFromRuleSet || r.needWIFIState) && r.platformInterface != nil {
+	if needWIFIState && r.platformInterface != nil {
+		monitor.Start("initialize WIFI state")
+		r.needWIFIState = true
+		r.interfaceMonitor.RegisterCallback(func(_ int) {
+			r.updateWIFIState()
+		})
+		r.updateWIFIState()
+		monitor.Finish()
+	}
+	for i, rule := range r.rules {
+		monitor.Start("initialize rule[", i, "]")
+		err := rule.Start()
+		monitor.Finish()
+		if err != nil {
+			return E.Cause(err, "initialize rule[", i, "]")
+		}
+	}
+	if r.needWIFIState && r.platformInterface != nil {
 		monitor.Start("initialize WIFI state")
 		r.needWIFIState = true
 		r.interfaceMonitor.RegisterCallback(func(_ int) {
@@ -939,34 +968,57 @@ func (r *Router) RoutePacketConnection(ctx context.Context, conn N.PacketConn, m
 	}*/
 
 	if metadata.InboundOptions.SniffEnabled || metadata.Destination.Addr.IsUnspecified() {
-		buffer := buf.NewPacket()
-		destination, err := conn.ReadPacket(buffer)
+		var (
+			buffer      = buf.NewPacket()
+			destination M.Socksaddr
+			done        = make(chan struct{})
+			err         error
+		)
+		go func() {
+			sniffTimeout := C.ReadPayloadTimeout
+			if metadata.InboundOptions.SniffTimeout > 0 {
+				sniffTimeout = time.Duration(metadata.InboundOptions.SniffTimeout)
+			}
+			conn.SetReadDeadline(time.Now().Add(sniffTimeout))
+			destination, err = conn.ReadPacket(buffer)
+			conn.SetReadDeadline(time.Time{})
+			close(done)
+		}()
+		select {
+		case <-done:
+		case <-ctx.Done():
+			conn.Close()
+			return ctx.Err()
+		}
 		if err != nil {
 			buffer.Release()
-			return err
-		}
-		if metadata.Destination.Addr.IsUnspecified() {
-			metadata.Destination = destination
-		}
-		if metadata.InboundOptions.SniffEnabled {
-			sniffMetadata, _ := sniff.PeekPacket(ctx, buffer.Bytes(), sniff.DomainNameQuery, sniff.QUICClientHello, sniff.STUNMessage)
-			if sniffMetadata != nil {
-				metadata.Protocol = sniffMetadata.Protocol
-				metadata.Domain = sniffMetadata.Domain
-				if metadata.InboundOptions.SniffOverrideDestination && M.IsDomainName(metadata.Domain) {
-					metadata.Destination = M.Socksaddr{
-						Fqdn: metadata.Domain,
-						Port: metadata.Destination.Port,
+			if !errors.Is(err, os.ErrDeadlineExceeded) {
+				return err
+			}
+		} else {
+			if metadata.Destination.Addr.IsUnspecified() {
+				metadata.Destination = destination
+			}
+			if metadata.InboundOptions.SniffEnabled {
+				sniffMetadata, _ := sniff.PeekPacket(ctx, buffer.Bytes(), sniff.DomainNameQuery, sniff.QUICClientHello, sniff.STUNMessage)
+				if sniffMetadata != nil {
+					metadata.Protocol = sniffMetadata.Protocol
+					metadata.Domain = sniffMetadata.Domain
+					if metadata.InboundOptions.SniffOverrideDestination && M.IsDomainName(metadata.Domain) {
+						metadata.Destination = M.Socksaddr{
+							Fqdn: metadata.Domain,
+							Port: metadata.Destination.Port,
+						}
+					}
+					if metadata.Domain != "" {
+						r.logger.DebugContext(ctx, "sniffed packet protocol: ", metadata.Protocol, ", domain: ", metadata.Domain)
+					} else {
+						r.logger.DebugContext(ctx, "sniffed packet protocol: ", metadata.Protocol)
 					}
 				}
-				if metadata.Domain != "" {
-					r.logger.DebugContext(ctx, "sniffed packet protocol: ", metadata.Protocol, ", domain: ", metadata.Domain)
-				} else {
-					r.logger.DebugContext(ctx, "sniffed packet protocol: ", metadata.Protocol)
-				}
 			}
+			conn = bufio.NewCachedPacketConn(conn, buffer, destination)
 		}
-		conn = bufio.NewCachedPacketConn(conn, buffer, destination)
 	}
 	if r.dnsReverseMapping != nil && metadata.Domain == "" {
 		domain, loaded := r.dnsReverseMapping.Query(metadata.Destination.Addr)

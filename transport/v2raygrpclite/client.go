@@ -100,7 +100,7 @@ func (c *Client) DialContext(ctx context.Context) (net.Conn, error) {
 			conn.setup(nil, err)
 		} else if response.StatusCode != 200 {
 			response.Body.Close()
-			conn.setup(nil, E.New("unexpected status: ", response.Status))
+			conn.setup(nil, E.New("v2ray-grpc: unexpected status: ", response.Status))
 		} else {
 			conn.setup(response.Body, nil)
 		}
@@ -109,8 +109,6 @@ func (c *Client) DialContext(ctx context.Context) (net.Conn, error) {
 }
 
 func (c *Client) Close() error {
-	if c.transport != nil {
-		v2rayhttp.CloseIdleConnections(c.transport)
-	}
+	v2rayhttp.ResetTransport(c.transport)
 	return nil
 }
