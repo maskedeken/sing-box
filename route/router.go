@@ -736,23 +736,6 @@ func (r *Router) PostStart() error {
 			return E.Cause(err, "initialize rule[", i, "]")
 		}
 	}
-	if r.needWIFIState && r.platformInterface != nil {
-		monitor.Start("initialize WIFI state")
-		r.needWIFIState = true
-		r.interfaceMonitor.RegisterCallback(func(_ int) {
-			r.updateWIFIState()
-		})
-		r.updateWIFIState()
-		monitor.Finish()
-	}
-	for i, rule := range r.rules {
-		monitor.Start("initialize rule[", i, "]")
-		err := rule.Start()
-		monitor.Finish()
-		if err != nil {
-			return E.Cause(err, "initialize rule[", i, "]")
-		}
-	}
 	r.started = true
 	return nil
 }
@@ -849,7 +832,7 @@ func (r *Router) RouteConnection(ctx context.Context, conn net.Conn, metadata ad
 		conn = deadline.NewConn(conn)
 	}
 
-	if metadata.InboundOptions.SniffEnabled {
+	if metadata.InboundOptions.SniffEnabled && !sniff.Skip(metadata) {
 		buffer := buf.NewPacket()
 		sniffMetadata, err := sniff.PeekStream(ctx, conn, buffer, time.Duration(metadata.InboundOptions.SniffTimeout), sniff.StreamDomainNameQuery, sniff.TLSClientHello, sniff.HTTPHost)
 		if sniffMetadata != nil {
