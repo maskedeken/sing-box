@@ -2,6 +2,74 @@
 icon: material/arrange-bring-forward
 ---
 
+## 1.10.0
+
+### TUN 地址字段已合并
+
+`inet4_address` 和 `inet6_address` 已合并为 `address`，
+`inet4_route_address` 和 `inet6_route_address` 已合并为 `route_address`，
+`inet4_route_exclude_address` 和 `inet6_route_exclude_address` 已合并为 `route_exclude_address`。
+
+旧字段已废弃，且将在 sing-box 1.11.0 中移除。
+
+!!! info "参考"
+
+    [TUN](/zh/configuration/inbound/tun/)
+
+=== ":material-card-remove: 弃用的"
+
+    ```json
+    {
+      "inbounds": [
+        {
+          "type": "tun",
+          "inet4_address": "172.19.0.1/30",
+          "inet6_address": "fdfe:dcba:9876::1/126",
+          "inet4_route_address": [
+            "0.0.0.0/1",
+            "128.0.0.0/1"
+          ],
+          "inet6_route_address": [
+            "::/1",
+            "8000::/1"
+          ],
+          "inet4_route_exclude_address": [
+            "192.168.0.0/16"
+          ],
+          "inet6_route_exclude_address": [
+            "fc00::/7"
+          ]
+        }
+      ]
+    }
+    ```
+
+=== ":material-card-multiple: 新的"
+
+    ```json
+    {
+      "inbounds": [
+        {
+          "type": "tun",
+          "address": [
+            "172.19.0.1/30",
+            "fdfe:dcba:9876::1/126"
+          ],
+          "route_address": [
+            "0.0.0.0/1",
+            "128.0.0.0/1",
+            "::/1",
+            "8000::/1"
+          ],
+          "route_exclude_address": [
+            "192.168.0.0/16",
+            "fc00::/7"
+          ]
+        }
+      ]
+    }
+    ```
+
 ## 1.9.5
 
 ### Apple 平台客户端的 Bundle Identifier 更新
@@ -154,7 +222,7 @@ sing-box 1.9.0 使 QueryFullProcessImageNameW 输出 Win32 路径（如 `C:\fold
       },
       "experimental": {
         "cache_file": {
-          "enabled": true // required to save Rule Set cache
+          "enabled": true // required to save rule-set cache
         }
       }
     }
@@ -215,7 +283,7 @@ sing-box 1.9.0 使 QueryFullProcessImageNameW 输出 Win32 路径（如 `C:\fold
       },
       "experimental": {
         "cache_file": {
-          "enabled": true // required to save Rule Set cache
+          "enabled": true // required to save rule-set cache
         }
       }
     }

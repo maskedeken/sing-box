@@ -3,11 +3,14 @@ package libbox
 import (
 	"os"
 	"os/user"
+	"runtime/debug"
 	"strconv"
+	"time"
 
 	"github.com/sagernet/sing-box/common/humanize"
 	C "github.com/sagernet/sing-box/constant"
 	_ "github.com/sagernet/sing-box/include"
+	"github.com/sagernet/sing-box/log"
 )
 
 var (
@@ -18,6 +21,11 @@ var (
 	sGroupID     int
 	sTVOS        bool
 )
+
+func init() {
+	debug.SetPanicOnFault(true)
+	debug.SetTraceback("all")
+}
 
 func Setup(basePath string, workingPath string, tempPath string, isTVOS bool) {
 	sBasePath = basePath
@@ -57,6 +65,10 @@ func FormatBytes(length int64) string {
 
 func FormatMemoryBytes(length int64) string {
 	return humanize.MemoryBytes(uint64(length))
+}
+
+func FormatDuration(duration int64) string {
+	return log.FormatDuration(time.Duration(duration) * time.Millisecond)
 }
 
 func ProxyDisplayType(proxyType string) string {

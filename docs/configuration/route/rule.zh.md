@@ -1,3 +1,14 @@
+---
+icon: material/alert-decagram
+---
+
+!!! quote "sing-box 1.10.0 中的更改"
+
+    :material-plus: [client](#client)  
+    :material-delete-clock: [rule_set_ipcidr_match_source](#rule_set_ipcidr_match_source)  
+    :material-plus: [process_path_regex](#process_path_regex)
+
+
 !!! quote "sing-box 1.8.0 中的更改"
 
     :material-plus: [rule_set](#rule_set)  
@@ -30,6 +41,12 @@
           "tls",
           "http",
           "quic"
+        ],
+        "client": [
+          "chromium",
+          "safari",
+          "firefox",
+          "quic-go"
         ],
         "domain": [
           "test.com"
@@ -83,6 +100,9 @@
         "process_path": [
           "/usr/bin/curl"
         ],
+        "process_path_regex": [
+          "^/usr/bin/.+"
+        ],
         "package_name": [
           "com.termux"
         ],
@@ -103,7 +123,9 @@
           "geoip-cn",
           "geosite-cn"
         ],
+        // 已弃用
         "rule_set_ipcidr_match_source": false,
+        "rule_set_ip_cidr_match_source": false,
         "invert": false,
         "outbound": "direct"
       },
@@ -154,6 +176,12 @@
 #### protocol
 
 探测到的协议, 参阅 [协议探测](/zh/configuration/route/sniff/)。
+
+#### client
+
+!!! question "自 sing-box 1.10.0 起"
+
+探测到的客户端类型, 参阅 [协议探测](/zh/configuration/route/sniff/)。
 
 #### network
 
@@ -251,6 +279,16 @@
 
 匹配进程路径。
 
+#### process_path_regex
+
+!!! question "自 sing-box 1.10.0 起"
+
+!!! quote ""
+
+    仅支持 Linux、Windows 和 macOS.
+
+使用正则表达式匹配进程路径。
+
 #### package_name
 
 匹配 Android 应用包名。
@@ -301,7 +339,17 @@
 
 !!! question "自 sing-box 1.8.0 起"
 
-使规则集中的 `ipcidr` 规则匹配源 IP。
+!!! failure "已在 sing-box 1.10.0 废弃"
+
+    `rule_set_ipcidr_match_source` 已重命名为 `rule_set_ip_cidr_match_source` 且将在 sing-box 1.11.0 移除。
+
+使规则集中的 `ip_cidr` 规则匹配源 IP。
+
+#### rule_set_ip_cidr_match_source
+
+!!! question "自 sing-box 1.10.0 起"
+
+使规则集中的 `ip_cidr` 规则匹配源 IP。
 
 #### invert
 

@@ -64,12 +64,13 @@ func (r Rule) IsValid() bool {
 	}
 }
 
-type DefaultRule struct {
+type _DefaultRule struct {
 	Inbound                  Listable[string] `json:"inbound,omitempty"`
 	IPVersion                int              `json:"ip_version,omitempty"`
 	Network                  Listable[string] `json:"network,omitempty"`
 	AuthUser                 Listable[string] `json:"auth_user,omitempty"`
 	Protocol                 Listable[string] `json:"protocol,omitempty"`
+	Client                   Listable[string] `json:"client,omitempty"`
 	Domain                   Listable[string] `json:"domain,omitempty"`
 	DomainSuffix             Listable[string] `json:"domain_suffix,omitempty"`
 	DomainKeyword            Listable[string] `json:"domain_keyword,omitempty"`
@@ -87,6 +88,7 @@ type DefaultRule struct {
 	PortRange                Listable[string] `json:"port_range,omitempty"`
 	ProcessName              Listable[string] `json:"process_name,omitempty"`
 	ProcessPath              Listable[string] `json:"process_path,omitempty"`
+	ProcessPathRegex         Listable[string] `json:"process_path_regex,omitempty"`
 	PackageName              Listable[string] `json:"package_name,omitempty"`
 	User                     Listable[string] `json:"user,omitempty"`
 	UserID                   Listable[int32]  `json:"user_id,omitempty"`
@@ -94,12 +96,31 @@ type DefaultRule struct {
 	WIFISSID                 Listable[string] `json:"wifi_ssid,omitempty"`
 	WIFIBSSID                Listable[string] `json:"wifi_bssid,omitempty"`
 	RuleSet                  Listable[string] `json:"rule_set,omitempty"`
-	RuleSetIPCIDRMatchSource bool             `json:"rule_set_ipcidr_match_source,omitempty"`
+	RuleSetIPCIDRMatchSource bool             `json:"rule_set_ip_cidr_match_source,omitempty"`
 	Invert                   bool             `json:"invert,omitempty"`
 	Outbound                 string           `json:"outbound,omitempty"`
+
+	// Deprecated: renamed to rule_set_ip_cidr_match_source
+	Deprecated_RulesetIPCIDRMatchSource bool `json:"rule_set_ipcidr_match_source,omitempty"`
 }
 
-func (r DefaultRule) IsValid() bool {
+type DefaultRule _DefaultRule
+
+func (r *DefaultRule) UnmarshalJSON(bytes []byte) error {
+	err := json.Unmarshal(bytes, (*_DefaultRule)(r))
+	if err != nil {
+		return err
+	}
+	//nolint:staticcheck
+	//goland:noinspection GoDeprecation
+	if r.Deprecated_RulesetIPCIDRMatchSource {
+		r.Deprecated_RulesetIPCIDRMatchSource = false
+		r.RuleSetIPCIDRMatchSource = true
+	}
+	return nil
+}
+
+func (r *DefaultRule) IsValid() bool {
 	var defaultValue DefaultRule
 	defaultValue.Invert = r.Invert
 	defaultValue.Outbound = r.Outbound

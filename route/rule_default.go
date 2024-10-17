@@ -79,6 +79,11 @@ func NewDefaultRule(router adapter.Router, logger log.ContextLogger, options opt
 		rule.items = append(rule.items, item)
 		rule.allItems = append(rule.allItems, item)
 	}
+	if len(options.Client) > 0 {
+		item := NewClientItem(options.Client)
+		rule.items = append(rule.items, item)
+		rule.allItems = append(rule.allItems, item)
+	}
 	if len(options.Domain) > 0 || len(options.DomainSuffix) > 0 {
 		item := NewDomainItem(options.Domain, options.DomainSuffix)
 		rule.destinationAddressItems = append(rule.destinationAddressItems, item)
@@ -174,6 +179,14 @@ func NewDefaultRule(router adapter.Router, logger log.ContextLogger, options opt
 		rule.items = append(rule.items, item)
 		rule.allItems = append(rule.allItems, item)
 	}
+	if len(options.ProcessPathRegex) > 0 {
+		item, err := NewProcessPathRegexItem(options.ProcessPathRegex)
+		if err != nil {
+			return nil, E.Cause(err, "process_path_regex")
+		}
+		rule.items = append(rule.items, item)
+		rule.allItems = append(rule.allItems, item)
+	}
 	if len(options.PackageName) > 0 {
 		item := NewPackageNameItem(options.PackageName)
 		rule.items = append(rule.items, item)
@@ -205,7 +218,7 @@ func NewDefaultRule(router adapter.Router, logger log.ContextLogger, options opt
 		rule.allItems = append(rule.allItems, item)
 	}
 	if len(options.RuleSet) > 0 {
-		item := NewRuleSetItem(router, options.RuleSet, options.RuleSetIPCIDRMatchSource)
+		item := NewRuleSetItem(router, options.RuleSet, options.RuleSetIPCIDRMatchSource, false)
 		rule.items = append(rule.items, item)
 		rule.allItems = append(rule.allItems, item)
 	}

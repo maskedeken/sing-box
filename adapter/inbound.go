@@ -31,10 +31,15 @@ type InboundContext struct {
 	Network     string
 	Source      M.Socksaddr
 	Destination M.Socksaddr
-	Domain      string
-	Protocol    string
 	User        string
 	Outbound    string
+
+	// sniffer
+
+	Protocol     string
+	Domain       string
+	Client       string
+	SniffContext any
 
 	// cache
 
@@ -51,7 +56,9 @@ type InboundContext struct {
 
 	// rule cache
 
-	IPCIDRMatchSource            bool
+	IPCIDRMatchSource bool
+	IPCIDRAcceptEmpty bool
+
 	SourceAddressMatch           bool
 	SourcePortMatch              bool
 	DestinationAddressMatch      bool
@@ -62,6 +69,7 @@ type InboundContext struct {
 
 func (c *InboundContext) ResetRuleCache() {
 	c.IPCIDRMatchSource = false
+	c.IPCIDRAcceptEmpty = false
 	c.SourceAddressMatch = false
 	c.SourcePortMatch = false
 	c.DestinationAddressMatch = false

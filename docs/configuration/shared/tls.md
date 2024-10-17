@@ -1,4 +1,8 @@
-!!! quote "Changes in sing-box 1.8.0"
+---
+icon: material/alert-decagram
+---
+
+!!! quote "Changes in sing-box 1.10.0"
 
     :material-alert-decagram: [utls](#utls)  
 
@@ -178,6 +182,10 @@ The server certificate line array, in PEM format.
 
 #### certificate_path
 
+!!! note ""
+
+    Will be automatically reloaded if file modified.
+
 The path to the server certificate, in PEM format.
 
 #### key
@@ -189,6 +197,10 @@ The server private key line array, in PEM format.
 #### key_path
 
 ==Server only==
+
+!!! note ""
+
+    Will be automatically reloaded if file modified.
 
 The path to the server private key, in PEM format.
 
@@ -202,28 +214,25 @@ The path to the server private key, in PEM format.
 
 ==Client only==
 
-!!! note ""
-
-    uTLS is poorly maintained and the effect may be unproven, use at your own risk.
+!!! failure ""
+    
+    There is no evidence that GFW detects and blocks servers based on TLS client fingerprinting, and using an imperfect emulation that has not been security reviewed could pose security risks.
 
 uTLS is a fork of "crypto/tls", which provides ClientHello fingerprinting resistance.
 
 Available fingerprint values:
 
-!!! question "Since sing-box 1.8.0"
+!!! warning "Removed since sing-box 1.10.0"
 
-    :material-plus: chrome_psk  
-    :material-plus: chrome_psk_shuffle  
-    :material-plus: chrome_padding_psk_shuffle  
-    :material-plus: chrome_pq  
-    :material-plus: chrome_pq_psk
+    Some legacy chrome fingerprints have been removed and will fallback to chrome:
+
+    :material-close: chrome_psk  
+    :material-close: chrome_psk_shuffle  
+    :material-close: chrome_padding_psk_shuffle  
+    :material-close: chrome_pq  
+    :material-close: chrome_pq_psk
 
 * chrome
-* chrome_psk
-* chrome_psk_shuffle
-* chrome_padding_psk_shuffle
-* chrome_pq
-* chrome_pq_psk
 * firefox
 * edge
 * safari
@@ -265,6 +274,10 @@ ECH key line array, in PEM format.
 #### key_path
 
 ==Server only==
+
+!!! note ""
+
+    Will be automatically reloaded if file modified.
 
 The path to ECH key, in PEM format.
 
@@ -398,7 +411,3 @@ A hexadecimal string with zero to eight digits.
 The maximum time difference between the server and the client.
 
 Check disabled if empty.
-
-### Reload
-
-For server configuration, certificate, key and ECH key will be automatically reloaded if modified.

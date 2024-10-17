@@ -2,6 +2,13 @@
 icon: material/new-box
 ---
 
+!!! quote "Changes in sing-box 1.10.0"
+
+    :material-delete-clock: [rule_set_ipcidr_match_source](#rule_set_ipcidr_match_source)  
+    :material-plus: [rule_set_ip_cidr_match_source](#rule_set_ip_cidr_match_source)  
+    :material-plus: [rule_set_ip_cidr_accept_empty](#rule_set_ip_cidr_accept_empty)  
+    :material-plus: [process_path_regex](#process_path_regex)
+
 !!! quote "Changes in sing-box 1.9.0"
 
     :material-plus: [geoip](#geoip)  
@@ -97,6 +104,9 @@ icon: material/new-box
         "process_path": [
           "/usr/bin/curl"
         ],
+        "process_path_regex": [
+          "^/usr/bin/.+"
+        ],
         "package_name": [
           "com.termux"
         ],
@@ -117,7 +127,10 @@ icon: material/new-box
           "geoip-cn",
           "geosite-cn"
         ],
+        // deprecated
         "rule_set_ipcidr_match_source": false,
+        "rule_set_ip_cidr_match_source": false,
+        "rule_set_ip_cidr_accept_empty": false,
         "invert": false,
         "outbound": [
           "direct"
@@ -157,7 +170,7 @@ icon: material/new-box
     (`source_port` || `source_port_range`) &&  
     `other fields`
 
-    Additionally, included rule sets can be considered merged rather than as a single rule sub-item.
+    Additionally, included rule-sets can be considered merged rather than as a single rule sub-item.
 
 #### inbound
 
@@ -259,6 +272,16 @@ Match process name.
 
 Match process path.
 
+#### process_path_regex
+
+!!! question "Since sing-box 1.10.0"
+
+!!! quote ""
+
+    Only supported on Linux, Windows, and macOS.
+
+Match process path using regular expression.
+
 #### package_name
 
 Match android package name.
@@ -303,13 +326,23 @@ Match WiFi BSSID.
 
 !!! question "Since sing-box 1.8.0"
 
-Match [Rule Set](/configuration/route/#rule_set).
+Match [rule-set](/configuration/route/#rule_set).
 
 #### rule_set_ipcidr_match_source
 
 !!! question "Since sing-box 1.9.0"
 
-Make `ipcidr` in rule sets match the source IP.
+!!! failure "Deprecated in sing-box 1.10.0"
+    
+    `rule_set_ipcidr_match_source` is renamed to `rule_set_ip_cidr_match_source` and will be remove in sing-box 1.11.0.
+
+Make `ip_cidr` rule items in rule-sets match the source IP.
+
+#### rule_set_ip_cidr_match_source
+
+!!! question "Since sing-box 1.10.0"
+
+Make `ip_cidr` rule items in rule-sets match the source IP.
 
 #### invert
 
@@ -347,11 +380,11 @@ Will overrides `dns.client_subnet` and `servers.[].client_subnet`.
 
 ### Address Filter Fields
 
-Only takes effect for IP address requests. When the query results do not match the address filtering rule items, the current rule will be skipped.
+Only takes effect for address requests (A/AAAA/HTTPS). When the query results do not match the address filtering rule items, the current rule will be skipped.
 
 !!! info ""
 
-    `ip_cidr` items in included rule sets also takes effect as an address filtering field.
+    `ip_cidr` items in included rule-sets also takes effect as an address filtering field.
 
 !!! note ""
 
@@ -374,6 +407,12 @@ Match IP CIDR with query response.
 !!! question "Since sing-box 1.9.0"
 
 Match private IP with query response.
+
+#### rule_set_ip_cidr_accept_empty
+
+!!! question "Since sing-box 1.10.0"
+
+Make `ip_cidr` rules in rule-sets accept empty query response.
 
 ### Logical Fields
 

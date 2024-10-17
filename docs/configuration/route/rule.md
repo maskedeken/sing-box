@@ -1,3 +1,14 @@
+---
+icon: material/alert-decagram
+---
+
+!!! quote "Changes in sing-box 1.10.0"
+
+    :material-plus: [client](#client)  
+    :material-delete-clock: [rule_set_ipcidr_match_source](#rule_set_ipcidr_match_source)  
+    :material-plus: [rule_set_ip_cidr_match_source](#rule_set_ip_cidr_match_source)  
+    :material-plus: [process_path_regex](#process_path_regex)
+
 !!! quote "Changes in sing-box 1.8.0"
 
     :material-plus: [rule_set](#rule_set)  
@@ -30,6 +41,12 @@
           "tls",
           "http",
           "quic"
+        ],
+        "client": [
+          "chromium",
+          "safari",
+          "firefox",
+          "quic-go"
         ],
         "domain": [
           "test.com"
@@ -85,6 +102,9 @@
         "process_path": [
           "/usr/bin/curl"
         ],
+        "process_path_regex": [
+          "^/usr/bin/.+"
+        ],
         "package_name": [
           "com.termux"
         ],
@@ -105,7 +125,9 @@
           "geoip-cn",
           "geosite-cn"
         ],
+        // deprecated
         "rule_set_ipcidr_match_source": false,
+        "rule_set_ip_cidr_match_source": false,
         "invert": false,
         "outbound": "direct"
       },
@@ -137,7 +159,7 @@
     (`source_port` || `source_port_range`) &&  
     `other fields`
 
-    Additionally, included rule sets can be considered merged rather than as a single rule sub-item.
+    Additionally, included rule-sets can be considered merged rather than as a single rule sub-item.
 
 #### inbound
 
@@ -155,7 +177,13 @@ Username, see each inbound for details.
 
 #### protocol
 
-Sniffed protocol, see [Sniff](/configuration/route/sniff/) for details.
+Sniffed protocol, see [Protocol Sniff](/configuration/route/sniff/) for details.
+
+#### client
+
+!!! question "Since sing-box 1.10.0"
+
+Sniffed client type, see [Protocol Sniff](/configuration/route/sniff/) for details.
 
 #### network
 
@@ -253,6 +281,16 @@ Match process name.
 
 Match process path.
 
+#### process_path_regex
+
+!!! question "Since sing-box 1.10.0"
+
+!!! quote ""
+
+    Only supported on Linux, Windows, and macOS.
+
+Match process path using regular expression.
+
 #### package_name
 
 Match android package name.
@@ -297,13 +335,23 @@ Match WiFi BSSID.
 
 !!! question "Since sing-box 1.8.0"
 
-Match [Rule Set](/configuration/route/#rule_set).
+Match [rule-set](/configuration/route/#rule_set).
 
 #### rule_set_ipcidr_match_source
 
 !!! question "Since sing-box 1.8.0"
 
-Make `ipcidr` in rule sets match the source IP.
+!!! failure "Deprecated in sing-box 1.10.0"
+
+    `rule_set_ipcidr_match_source` is renamed to `rule_set_ip_cidr_match_source` and will be remove in sing-box 1.11.0.
+
+Make `ip_cidr` in rule-sets match the source IP.
+
+#### rule_set_ip_cidr_match_source
+
+!!! question "Since sing-box 1.10.0"
+
+Make `ip_cidr` in rule-sets match the source IP.
 
 #### invert
 

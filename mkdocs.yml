@@ -11,18 +11,22 @@ theme:
   logo: assets/icon.svg
   favicon: assets/icon.svg
   palette:
+    - media: "(prefers-color-scheme)"
+      toggle:
+        icon: material/link
+        name: Switch to light mode
     - media: "(prefers-color-scheme: light)"
       scheme: default
       primary: white
       toggle:
-        icon: material/brightness-7
+        icon: material/toggle-switch
         name: Switch to dark mode
     - media: "(prefers-color-scheme: dark)"
       scheme: slate
       primary: black
       toggle:
-        icon: material/brightness-4
-        name: Switch to light mode
+        icon: material/toggle-switch-off
+        name: Switch to system preference
   features:
     #    - navigation.instant
     - navigation.tracking
@@ -91,6 +95,7 @@ nav:
           - configuration/rule-set/index.md
           - Source Format: configuration/rule-set/source-format.md
           - Headless Rule: configuration/rule-set/headless-rule.md
+          - AdGuard DNS Filer: configuration/rule-set/adguard.md
       - Experimental:
           - configuration/experimental/index.md
           - Cache File: configuration/experimental/cache-file.md

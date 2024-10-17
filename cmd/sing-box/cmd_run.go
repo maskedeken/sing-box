@@ -109,7 +109,7 @@ func readConfigAndMerge() (option.Options, error) {
 	}
 	var mergedMessage json.RawMessage
 	for _, options := range optionsList {
-		mergedMessage, err = badjson.MergeJSON(options.options.RawMessage, mergedMessage)
+		mergedMessage, err = badjson.MergeJSON(options.options.RawMessage, mergedMessage, false)
 		if err != nil {
 			return option.Options{}, E.Cause(err, "merge config at ", options.path)
 		}
@@ -188,9 +188,12 @@ func run() error {
 			cancel()
 			closeCtx, closed := context.WithCancel(context.Background())
 			go closeMonitor(closeCtx)
-			instance.Close()
+			err = instance.Close()
 			closed()
 			if osSignal != syscall.SIGHUP {
+				if err != nil {
+					log.Error(E.Cause(err, "sing-box did not closed properly"))
+				}
 				return nil
 			}
 			break

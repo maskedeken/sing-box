@@ -22,43 +22,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
+        uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871 # v4
         with:
           fetch-depth: 0
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version: ^1.22
-        continue-on-error: true
+          go-version: ^1.23
       - name: Run Test
         run: |
           go test -v ./...
-  build_go118:
-    name: Debug build (Go 1.18)
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4
-        with:
-          fetch-depth: 0
-      - name: Setup Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: ~1.18
-      - name: Cache go module
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/go/pkg/mod
-          key: go118-${{ hashFiles('**/go.sum') }}
-      - name: Run Test
-        run: make ci_build_go118
   build_go120:
     name: Debug build (Go 1.20)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
+        uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871 # v4
         with:
           fetch-depth: 0
       - name: Setup Go
@@ -78,7 +57,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
+        uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871 # v4
         with:
           fetch-depth: 0
       - name: Setup Go
@@ -91,6 +70,26 @@ jobs:
           path: |
             ~/go/pkg/mod
           key: go121-${{ hashFiles('**/go.sum') }}
+      - name: Run Test
+        run: make ci_build
+  build_go122:
+    name: Debug build (Go 1.22)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871 # v4
+        with:
+          fetch-depth: 0
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ~1.22
+      - name: Cache go module
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/go/pkg/mod
+          key: go122-${{ hashFiles('**/go.sum') }}
       - name: Run Test
         run: make ci_build
   cross:
@@ -208,7 +207,7 @@ jobs:
       TAGS: with_clash_api,with_quic
     steps:
       - name: Checkout
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
+        uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871 # v4
         with:
           fetch-depth: 0
       - name: Setup Go

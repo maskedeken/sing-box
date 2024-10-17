@@ -1,2 +1,0 @@
-- Mitigating TunnelVision attacks
-- Fixes and improvements

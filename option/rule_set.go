@@ -14,9 +14,10 @@ import (
 )
 
 type _RuleSet struct {
-	Type          string        `json:"type"`
+	Type          string        `json:"type,omitempty"`
 	Tag           string        `json:"tag"`
-	Format        string        `json:"format"`
+	Format        string        `json:"format,omitempty"`
+	InlineOptions PlainRuleSet  `json:"-"`
 	LocalOptions  LocalRuleSet  `json:"-"`
 	RemoteOptions RemoteRuleSet `json:"-"`
 }
@@ -26,12 +27,15 @@ type RuleSet _RuleSet
 func (r RuleSet) MarshalJSON() ([]byte, error) {
 	var v any
 	switch r.Type {
+	case "", C.RuleSetTypeInline:
+		r.Type = ""
+		v = r.InlineOptions
 	case C.RuleSetTypeLocal:
 		v = r.LocalOptions
 	case C.RuleSetTypeRemote:
 		v = r.RemoteOptions
 	default:
-		return nil, E.New("unknown rule set type: " + r.Type)
+		return nil, E.New("unknown rule-set type: " + r.Type)
 	}
 	return MarshallObjects((_RuleSet)(r), v)
 }
@@ -44,23 +48,28 @@ func (r *RuleSet) UnmarshalJSON(bytes []byte) error {
 	if r.Tag == "" {
 		return E.New("missing tag")
 	}
-	switch r.Format {
-	case "":
-		return E.New("missing format")
-	case C.RuleSetFormatSource, C.RuleSetFormatBinary:
-	default:
-		return E.New("unknown rule set format: " + r.Format)
+	if r.Type != C.RuleSetTypeInline {
+		switch r.Format {
+		case "":
+			return E.New("missing format")
+		case C.RuleSetFormatSource, C.RuleSetFormatBinary:
+		default:
+			return E.New("unknown rule-set format: " + r.Format)
+		}
+	} else {
+		r.Format = ""
 	}
 	var v any
 	switch r.Type {
+	case "", C.RuleSetTypeInline:
+		r.Type = C.RuleSetTypeInline
+		v = &r.InlineOptions
 	case C.RuleSetTypeLocal:
 		v = &r.LocalOptions
 	case C.RuleSetTypeRemote:
 		v = &r.RemoteOptions
-	case "":
-		return E.New("missing type")
 	default:
-		return E.New("unknown rule set type: " + r.Type)
+		return E.New("unknown rule-set type: " + r.Type)
 	}
 	err = UnmarshallExcluded(bytes, (*_RuleSet)(r), v)
 	if err != nil {
@@ -135,28 +144,32 @@ func (r HeadlessRule) IsValid() bool {
 }
 
 type DefaultHeadlessRule struct {
-	QueryType       Listable[DNSQueryType] `json:"query_type,omitempty"`
-	Network         Listable[string]       `json:"network,omitempty"`
-	Domain          Listable[string]       `json:"domain,omitempty"`
-	DomainSuffix    Listable[string]       `json:"domain_suffix,omitempty"`
-	DomainKeyword   Listable[string]       `json:"domain_keyword,omitempty"`
-	DomainRegex     Listable[string]       `json:"domain_regex,omitempty"`
-	SourceIPCIDR    Listable[string]       `json:"source_ip_cidr,omitempty"`
-	IPCIDR          Listable[string]       `json:"ip_cidr,omitempty"`
-	SourcePort      Listable[uint16]       `json:"source_port,omitempty"`
-	SourcePortRange Listable[string]       `json:"source_port_range,omitempty"`
-	Port            Listable[uint16]       `json:"port,omitempty"`
-	PortRange       Listable[string]       `json:"port_range,omitempty"`
-	ProcessName     Listable[string]       `json:"process_name,omitempty"`
-	ProcessPath     Listable[string]       `json:"process_path,omitempty"`
-	PackageName     Listable[string]       `json:"package_name,omitempty"`
-	WIFISSID        Listable[string]       `json:"wifi_ssid,omitempty"`
-	WIFIBSSID       Listable[string]       `json:"wifi_bssid,omitempty"`
-	Invert          bool                   `json:"invert,omitempty"`
+	QueryType        Listable[DNSQueryType] `json:"query_type,omitempty"`
+	Network          Listable[string]       `json:"network,omitempty"`
+	Domain           Listable[string]       `json:"domain,omitempty"`
+	DomainSuffix     Listable[string]       `json:"domain_suffix,omitempty"`
+	DomainKeyword    Listable[string]       `json:"domain_keyword,omitempty"`
+	DomainRegex      Listable[string]       `json:"domain_regex,omitempty"`
+	SourceIPCIDR     Listable[string]       `json:"source_ip_cidr,omitempty"`
+	IPCIDR           Listable[string]       `json:"ip_cidr,omitempty"`
+	SourcePort       Listable[uint16]       `json:"source_port,omitempty"`
+	SourcePortRange  Listable[string]       `json:"source_port_range,omitempty"`
+	Port             Listable[uint16]       `json:"port,omitempty"`
+	PortRange        Listable[string]       `json:"port_range,omitempty"`
+	ProcessName      Listable[string]       `json:"process_name,omitempty"`
+	ProcessPath      Listable[string]       `json:"process_path,omitempty"`
+	ProcessPathRegex Listable[string]       `json:"process_path_regex,omitempty"`
+	PackageName      Listable[string]       `json:"package_name,omitempty"`
+	WIFISSID         Listable[string]       `json:"wifi_ssid,omitempty"`
+	WIFIBSSID        Listable[string]       `json:"wifi_bssid,omitempty"`
+	Invert           bool                   `json:"invert,omitempty"`
 
 	DomainMatcher *domain.Matcher `json:"-"`
 	SourceIPSet   *netipx.IPSet   `json:"-"`
 	IPSet         *netipx.IPSet   `json:"-"`
+
+	AdGuardDomain        Listable[string]       `json:"-"`
+	AdGuardDomainMatcher *domain.AdGuardMatcher `json:"-"`
 }
 
 func (r DefaultHeadlessRule) IsValid() bool {
@@ -185,10 +198,10 @@ type PlainRuleSetCompat _PlainRuleSetCompat
 func (r PlainRuleSetCompat) MarshalJSON() ([]byte, error) {
 	var v any
 	switch r.Version {
-	case C.RuleSetVersion1:
+	case C.RuleSetVersion1, C.RuleSetVersion2:
 		v = r.Options
 	default:
-		return nil, E.New("unknown rule set version: ", r.Version)
+		return nil, E.New("unknown rule-set version: ", r.Version)
 	}
 	return MarshallObjects((_PlainRuleSetCompat)(r), v)
 }
@@ -200,12 +213,12 @@ func (r *PlainRuleSetCompat) UnmarshalJSON(bytes []byte) error {
 	}
 	var v any
 	switch r.Version {
-	case C.RuleSetVersion1:
+	case C.RuleSetVersion1, C.RuleSetVersion2:
 		v = &r.Options
 	case 0:
-		return E.New("missing rule set version")
+		return E.New("missing rule-set version")
 	default:
-		return E.New("unknown rule set version: ", r.Version)
+		return E.New("unknown rule-set version: ", r.Version)
 	}
 	err = UnmarshallExcluded(bytes, (*_PlainRuleSetCompat)(r), v)
 	if err != nil {
@@ -214,15 +227,13 @@ func (r *PlainRuleSetCompat) UnmarshalJSON(bytes []byte) error {
 	return nil
 }
 
-func (r PlainRuleSetCompat) Upgrade() PlainRuleSet {
-	var result PlainRuleSet
+func (r PlainRuleSetCompat) Upgrade() (PlainRuleSet, error) {
 	switch r.Version {
-	case C.RuleSetVersion1:
-		result = r.Options
+	case C.RuleSetVersion1, C.RuleSetVersion2:
 	default:
-		panic("unknown rule set version: " + F.ToString(r.Version))
+		return PlainRuleSet{}, E.New("unknown rule-set version: " + F.ToString(r.Version))
 	}
-	return result
+	return r.Options, nil
 }
 
 type PlainRuleSet struct {
