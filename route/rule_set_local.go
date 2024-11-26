@@ -58,7 +58,6 @@ func NewLocalRuleSet(ctx context.Context, router adapter.Router, logger logger.L
 		}
 	}
 	if options.Type == C.RuleSetTypeLocal {
-		var watcher *fswatch.Watcher
 		filePath, _ := filepath.Abs(options.LocalOptions.Path)
 		watcher, err := fswatch.NewWatcher(fswatch.Options{
 			Path: []string{filePath},
@@ -85,7 +84,7 @@ func (s *LocalRuleSet) String() string {
 	return strings.Join(F.MapToString(s.rules), " ")
 }
 
-func (s *LocalRuleSet) StartContext(ctx context.Context, startContext adapter.RuleSetStartContext) error {
+func (s *LocalRuleSet) StartContext(ctx context.Context, startContext *adapter.HTTPStartContext) error {
 	if s.watcher != nil {
 		err := s.watcher.Start()
 		if err != nil {
@@ -96,32 +95,33 @@ func (s *LocalRuleSet) StartContext(ctx context.Context, startContext adapter.Ru
 }
 
 func (s *LocalRuleSet) reloadFile(path string) error {
-	var plainRuleSet option.PlainRuleSet
+	var ruleSet option.PlainRuleSetCompat
 	switch s.fileFormat {
 	case C.RuleSetFormatSource, "":
 		content, err := os.ReadFile(path)
 		if err != nil {
 			return err
 		}
-		compat, err := json.UnmarshalExtended[option.PlainRuleSetCompat](content)
+		ruleSet, err = json.UnmarshalExtended[option.PlainRuleSetCompat](content)
 		if err != nil {
 			return err
 		}
-		plainRuleSet, err = compat.Upgrade()
-		if err != nil {
-			return err
-		}
+
 	case C.RuleSetFormatBinary:
 		setFile, err := os.Open(path)
 		if err != nil {
 			return err
 		}
-		plainRuleSet, err = srs.Read(setFile, false)
+		ruleSet, err = srs.Read(setFile, false)
 		if err != nil {
 			return err
 		}
 	default:
 		return E.New("unknown rule-set format: ", s.fileFormat)
+	}
+	plainRuleSet, err := ruleSet.Upgrade()
+	if err != nil {
+		return err
 	}
 	return s.reloadRules(plainRuleSet.Rules)
 }

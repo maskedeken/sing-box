@@ -22,6 +22,7 @@ type PlatformInterface interface {
 	IncludeAllNetworks() bool
 	ReadWIFIState() *WIFIState
 	ClearDNSCache()
+	SendNotification(notification *Notification) error
 }
 
 type TunInterface interface {
@@ -38,6 +39,7 @@ type NetworkInterface struct {
 	MTU       int32
 	Name      string
 	Addresses StringIterator
+	Flags     int32
 }
 
 type WIFIState struct {
@@ -52,6 +54,16 @@ func NewWIFIState(wifiSSID string, wifiBSSID string) *WIFIState {
 type NetworkInterfaceIterator interface {
 	Next() *NetworkInterface
 	HasNext() bool
+}
+
+type Notification struct {
+	Identifier string
+	TypeName   string
+	TypeID     int32
+	Title      string
+	Subtitle   string
+	Body       string
+	OpenURL    string
 }
 
 type OnDemandRule interface {

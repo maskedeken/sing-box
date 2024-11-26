@@ -10,6 +10,7 @@ import (
 	"os/user"
 	"runtime"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/sagernet/sing-box/adapter"
@@ -153,14 +154,14 @@ func NewRouter(
 		Logger: router.dnsLogger,
 	})
 	for i, ruleOptions := range options.Rules {
-		routeRule, err := NewRule(router, router.logger, ruleOptions, true)
+		routeRule, err := NewRule(ctx, router, router.logger, ruleOptions, true)
 		if err != nil {
 			return nil, E.Cause(err, "parse rule[", i, "]")
 		}
 		router.rules = append(router.rules, routeRule)
 	}
 	for i, dnsRuleOptions := range dnsOptions.Rules {
-		dnsRule, err := NewDNSRule(router, router.logger, dnsRuleOptions, true)
+		dnsRule, err := NewDNSRule(ctx, router, router.logger, dnsRuleOptions, true)
 		if err != nil {
 			return nil, E.Cause(err, "parse dns rule[", i, "]")
 		}
@@ -211,12 +212,19 @@ func NewRouter(
 			} else {
 				detour = dialer.NewDetour(router, server.Detour)
 			}
+			var serverProtocol string
 			switch server.Address {
 			case "local":
+				serverProtocol = "local"
 			default:
 				serverURL, _ := url.Parse(server.Address)
 				var serverAddress string
 				if serverURL != nil {
+					if serverURL.Scheme == "" {
+						serverProtocol = "udp"
+					} else {
+						serverProtocol = serverURL.Scheme
+					}
 					serverAddress = serverURL.Hostname()
 				}
 				if serverAddress == "" {
@@ -242,9 +250,12 @@ func NewRouter(
 			} else if dnsOptions.ClientSubnet != nil {
 				clientSubnet = dnsOptions.ClientSubnet.Build()
 			}
+			if serverProtocol == "" {
+				serverProtocol = "transport"
+			}
 			transport, err := dns.CreateTransport(dns.TransportOptions{
 				Context:      ctx,
-				Logger:       logFactory.NewLogger(F.ToString("dns/transport[", tag, "]")),
+				Logger:       logFactory.NewLogger(F.ToString("dns/", serverProtocol, "[", tag, "]")),
 				Name:         tag,
 				Dialer:       detour,
 				Address:      server.Address,
@@ -659,14 +670,15 @@ func (r *Router) Close() error {
 
 func (r *Router) PostStart() error {
 	monitor := taskmonitor.New(r.logger, C.StopTimeout)
+	var cacheContext *adapter.HTTPStartContext
 	if len(r.ruleSets) > 0 {
 		monitor.Start("initialize rule-set")
-		ruleSetStartContext := NewRuleSetStartContext()
+		cacheContext = adapter.NewHTTPStartContext()
 		var ruleSetStartGroup task.Group
 		for i, ruleSet := range r.ruleSets {
 			ruleSetInPlace := ruleSet
 			ruleSetStartGroup.Append0(func(ctx context.Context) error {
-				err := ruleSetInPlace.StartContext(ctx, ruleSetStartContext)
+				err := ruleSetInPlace.StartContext(ctx, cacheContext)
 				if err != nil {
 					return E.Cause(err, "initialize rule-set[", i, "]")
 				}
@@ -680,7 +692,9 @@ func (r *Router) PostStart() error {
 		if err != nil {
 			return err
 		}
-		ruleSetStartContext.Close()
+	}
+	if cacheContext != nil {
+		cacheContext.Close()
 	}
 	needFindProcess := r.needFindProcess
 	needWIFIState := r.needWIFIState
@@ -1185,7 +1199,11 @@ func (r *Router) AutoDetectInterface() bool {
 
 func (r *Router) AutoDetectInterfaceFunc() control.Func {
 	if r.platformInterface != nil && r.platformInterface.UsePlatformAutoDetectInterfaceControl() {
-		return r.platformInterface.AutoDetectInterfaceControl()
+		return func(network, address string, conn syscall.RawConn) error {
+			return control.Raw(conn, func(fd uintptr) error {
+				return r.platformInterface.AutoDetectInterfaceControl(int(fd))
+			})
+		}
 	} else {
 		if r.interfaceMonitor == nil {
 			return nil

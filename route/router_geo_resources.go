@@ -7,12 +7,12 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"time"
 
 	"github.com/sagernet/sing-box/adapter"
 	"github.com/sagernet/sing-box/common/geoip"
 	"github.com/sagernet/sing-box/common/geosite"
 	C "github.com/sagernet/sing-box/constant"
+	"github.com/sagernet/sing-box/experimental/deprecated"
 	E "github.com/sagernet/sing/common/exceptions"
 	M "github.com/sagernet/sing/common/metadata"
 	"github.com/sagernet/sing/common/rw"
@@ -32,7 +32,7 @@ func (r *Router) LoadGeosite(code string) (adapter.Rule, error) {
 	if err != nil {
 		return nil, err
 	}
-	rule, err = NewDefaultRule(r, nil, geosite.Compile(items))
+	rule, err = NewDefaultRule(r.ctx, r, nil, geosite.Compile(items))
 	if err != nil {
 		return nil, err
 	}
@@ -41,6 +41,7 @@ func (r *Router) LoadGeosite(code string) (adapter.Rule, error) {
 }
 
 func (r *Router) prepareGeoIPDatabase() error {
+	deprecated.Report(r.ctx, deprecated.OptionGEOIP)
 	var geoPath string
 	if r.geoIPOptions.Path != "" {
 		geoPath = r.geoIPOptions.Path
@@ -87,6 +88,7 @@ func (r *Router) prepareGeoIPDatabase() error {
 }
 
 func (r *Router) prepareGeositeDatabase() error {
+	deprecated.Report(r.ctx, deprecated.OptionGEOSITE)
 	var geoPath string
 	if r.geositeOptions.Path != "" {
 		geoPath = r.geositeOptions.Path
@@ -158,7 +160,7 @@ func (r *Router) downloadGeoIPDatabase(savePath string) error {
 	httpClient := &http.Client{
 		Transport: &http.Transport{
 			ForceAttemptHTTP2:   true,
-			TLSHandshakeTimeout: 5 * time.Second,
+			TLSHandshakeTimeout: C.TCPTimeout,
 			DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
 				return detour.DialContext(ctx, network, M.ParseSocksaddr(addr))
 			},
@@ -213,7 +215,7 @@ func (r *Router) downloadGeositeDatabase(savePath string) error {
 	httpClient := &http.Client{
 		Transport: &http.Transport{
 			ForceAttemptHTTP2:   true,
-			TLSHandshakeTimeout: 5 * time.Second,
+			TLSHandshakeTimeout: C.TCPTimeout,
 			DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
 				return detour.DialContext(ctx, network, M.ParseSocksaddr(addr))
 			},

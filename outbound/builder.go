@@ -11,10 +11,10 @@ import (
 )
 
 func New(ctx context.Context, router adapter.Router, logger log.ContextLogger, tag string, options option.Outbound) (adapter.Outbound, error) {
-	var metadata *adapter.InboundContext
 	if tag != "" {
-		ctx, metadata = adapter.AppendContext(ctx)
-		metadata.Outbound = tag
+		ctx = adapter.WithContext(ctx, &adapter.InboundContext{
+			Outbound: tag,
+		})
 	}
 	if options.Type == "" {
 		return nil, E.New("missing outbound type")
