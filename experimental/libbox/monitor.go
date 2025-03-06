@@ -97,6 +97,14 @@ func (m *platformDefaultInterfaceMonitor) UnregisterCallback(element *list.Eleme
 }
 
 func (m *platformDefaultInterfaceMonitor) UpdateDefaultInterface(interfaceName string, interfaceIndex32 int32) {
+	if sFixAndroidStack {
+		go m.updateDefaultInterface(interfaceName, interfaceIndex32)
+	} else {
+		m.updateDefaultInterface(interfaceName, interfaceIndex32)
+	}
+}
+
+func (m *platformDefaultInterfaceMonitor) updateDefaultInterface(interfaceName string, interfaceIndex32 int32) {
 	if interfaceName == "" || interfaceIndex32 == -1 {
 		m.defaultInterfaceName = ""
 		m.defaultInterfaceIndex = -1

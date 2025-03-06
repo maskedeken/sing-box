@@ -124,11 +124,8 @@ func NewServer(ctx context.Context, router adapter.Router, logFactory log.Observ
 	if options.ExternalUI != "" {
 		server.externalUI = filemanager.BasePath(ctx, os.ExpandEnv(options.ExternalUI))
 		chiRouter.Group(func(r chi.Router) {
-			fs := http.StripPrefix("/ui", http.FileServer(http.Dir(server.externalUI)))
-			r.Get("/ui", http.RedirectHandler("/ui/", http.StatusTemporaryRedirect).ServeHTTP)
-			r.Get("/ui/*", func(w http.ResponseWriter, r *http.Request) {
-				fs.ServeHTTP(w, r)
-			})
+			r.Get("/ui", http.RedirectHandler("/ui/", http.StatusMovedPermanently).ServeHTTP)
+			r.Handle("/ui/*", http.StripPrefix("/ui/", http.FileServer(http.Dir(server.externalUI))))
 		})
 	}
 	return server, nil
@@ -316,27 +313,29 @@ func traffic(trafficManager *trafficontrol.Manager) func(w http.ResponseWriter, 
 		tick := time.NewTicker(time.Second)
 		defer tick.Stop()
 		buf := &bytes.Buffer{}
-		var err error
+		uploadTotal, downloadTotal := trafficManager.Total()
 		for range tick.C {
 			buf.Reset()
-			up, down := trafficManager.Now()
-			if err := json.NewEncoder(buf).Encode(Traffic{
-				Up:   up,
-				Down: down,
-			}); err != nil {
+			uploadTotalNew, downloadTotalNew := trafficManager.Total()
+			err := json.NewEncoder(buf).Encode(Traffic{
+				Up:   uploadTotalNew - uploadTotal,
+				Down: downloadTotalNew - downloadTotal,
+			})
+			if err != nil {
 				break
 			}
-
 			if conn == nil {
 				_, err = w.Write(buf.Bytes())
 				w.(http.Flusher).Flush()
 			} else {
 				err = wsutil.WriteServerText(conn, buf.Bytes())
 			}
-
 			if err != nil {
 				break
 			}
+
+			uploadTotal = uploadTotalNew
+			downloadTotal = downloadTotalNew
 		}
 	}
 }

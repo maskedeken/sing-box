@@ -152,11 +152,18 @@ func (w *WireGuard) start() error {
 		}
 		bind = wireguard.NewClientBind(w.ctx, w, w.listener, isConnect, connectAddr, reserved)
 	}
+	if w.useStdNetBind || len(w.peers) > 1 {
+		for _, peer := range w.peers {
+			if peer.Reserved != [3]uint8{} {
+				bind.SetReservedForEndpoint(peer.Endpoint, peer.Reserved)
+			}
+		}
+	}
 	err = w.tunDevice.Start()
 	if err != nil {
 		return err
 	}
-	wgDevice := device.NewDevice(w.tunDevice, bind, &device.Logger{
+	wgDevice := device.NewDevice(w.ctx, w.tunDevice, bind, &device.Logger{
 		Verbosef: func(format string, args ...interface{}) {
 			w.logger.Debug(fmt.Sprintf(strings.ToLower(format), args...))
 		},

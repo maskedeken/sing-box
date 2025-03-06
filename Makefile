@@ -71,7 +71,7 @@ release:
 		dist/*_amd64.pkg.tar.zst \
 		dist/*_arm64.pkg.tar.zst \
 		dist/release
-	ghr --replace --draft --prerelease -p 3 "v${VERSION}" dist/release
+	ghr --replace --draft --prerelease -p 5 "v${VERSION}" dist/release
 	rm -r dist/release
 
 release_repo:
@@ -90,7 +90,7 @@ upload_android:
 	mkdir -p dist/release_android
 	cp ../sing-box-for-android/app/build/outputs/apk/play/release/*.apk dist/release_android
 	cp ../sing-box-for-android/app/build/outputs/apk/other/release/*-universal.apk dist/release_android
-	ghr --replace --draft --prerelease -p 3 "v${VERSION}" dist/release_android
+	ghr --replace --draft --prerelease -p 5 "v${VERSION}" dist/release_android
 	rm -rf dist/release_android
 
 release_android: lib_android update_android_version build_android upload_android
@@ -182,9 +182,21 @@ release_tvos: build_tvos upload_tvos_app_store
 update_apple_version:
 	go run ./cmd/internal/update_apple_version
 
+update_macos_version:
+	MACOS_PROJECT_VERSION=$(shell go run -v ./cmd/internal/app_store_connect next_macos_project_version) go run ./cmd/internal/update_apple_version
+
 release_apple: lib_ios update_apple_version release_ios release_macos release_tvos release_macos_standalone
 
 release_apple_beta: update_apple_version release_ios release_macos release_tvos
+
+publish_testflight:
+	go run -v ./cmd/internal/app_store_connect publish_testflight
+
+prepare_app_store:
+	go run -v ./cmd/internal/app_store_connect prepare_app_store
+
+publish_app_store:
+	go run -v ./cmd/internal/app_store_connect publish_app_store
 
 test:
 	@go test -v ./... && \
@@ -201,8 +213,14 @@ test_stdio:
 lib_android:
 	go run ./cmd/internal/build_libbox -target android
 
+lib_android_debug:
+	go run ./cmd/internal/build_libbox -target android -debug
+
+lib_apple:
+	go run ./cmd/internal/build_libbox -target apple
+
 lib_ios:
-	go run ./cmd/internal/build_libbox -target ios
+	go run ./cmd/internal/build_libbox -target apple -platform ios -debug
 
 lib:
 	go run ./cmd/internal/build_libbox -target android
