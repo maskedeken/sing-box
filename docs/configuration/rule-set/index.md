@@ -74,7 +74,7 @@ Tag of rule-set.
 
 ==Required==
 
-List of [Headless Rule](../headless-rule/).
+List of [Headless Rule](./headless-rule/).
 
 ### Local or Remote Fields
 
@@ -83,6 +83,8 @@ List of [Headless Rule](../headless-rule/).
 ==Required==
 
 Format of rule-set file, `source` or `binary`.
+
+Optional when `path` or `url` uses `json` or `srs` as extension.
 
 ### Local Fields
 

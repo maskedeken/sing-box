@@ -95,10 +95,12 @@ archives:
     builds:
       - main
       - android
-    format: tar.gz
+    formats:
+      - tar.gz
     format_overrides:
       - goos: windows
-        format: zip
+        formats:
+          - zip
     wrap_in_directory: true
     files:
       - LICENSE
@@ -128,7 +130,7 @@ nfpms:
     contents:
       - src: release/config/config.json
         dst: /etc/sing-box/config.json
-        type: config
+        type: "config|noreplace"
 
       - src: release/config/sing-box.service
         dst: /usr/lib/systemd/system/sing-box.service

@@ -2,9 +2,11 @@ package route
 
 import (
 	"context"
+	"errors"
 	"io"
 	"net"
 	"net/netip"
+	"os"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -13,6 +15,7 @@ import (
 	"github.com/sagernet/sing-box/common/dialer"
 	C "github.com/sagernet/sing-box/constant"
 	"github.com/sagernet/sing/common"
+	"github.com/sagernet/sing/common/buf"
 	"github.com/sagernet/sing/common/bufio"
 	"github.com/sagernet/sing/common/canceler"
 	E "github.com/sagernet/sing/common/exceptions"
@@ -149,16 +152,17 @@ func (m *ConnectionManager) NewPacketConnection(ctx context.Context, this N.Dial
 		} else {
 			originDestination = metadata.Destination
 		}
-		if metadata.Destination != M.SocksaddrFrom(destinationAddress, metadata.Destination.Port) {
+		if natConn, loaded := common.Cast[bufio.NATPacketConn](conn); loaded {
+			natConn.UpdateDestination(destinationAddress)
+		} else if metadata.Destination != M.SocksaddrFrom(destinationAddress, metadata.Destination.Port) {
 			if metadata.UDPDisableDomainUnmapping {
 				remotePacketConn = bufio.NewUnidirectionalNATPacketConn(bufio.NewPacketConn(remotePacketConn), M.SocksaddrFrom(destinationAddress, metadata.Destination.Port), originDestination)
 			} else {
 				remotePacketConn = bufio.NewNATPacketConn(bufio.NewPacketConn(remotePacketConn), M.SocksaddrFrom(destinationAddress, metadata.Destination.Port), originDestination)
 			}
 		}
-		if natConn, loaded := common.Cast[bufio.NATPacketConn](conn); loaded {
-			natConn.UpdateDestination(destinationAddress)
-		}
+	} else if metadata.RouteOriginalDestination.IsValid() && metadata.RouteOriginalDestination != metadata.Destination {
+		remotePacketConn = bufio.NewDestinationNATPacketConn(bufio.NewPacketConn(remotePacketConn), metadata.Destination, metadata.RouteOriginalDestination)
 	}
 	var udpTimeout time.Duration
 	if metadata.UDPTimeout > 0 {
@@ -189,14 +193,16 @@ func (m *ConnectionManager) NewPacketConnection(ctx context.Context, this N.Dial
 	go m.packetConnectionCopy(ctx, destination, conn, true, &done, onClose)
 }
 
-func (m *ConnectionManager) connectionCopy(ctx context.Context, source io.Reader, destination io.Writer, direction bool, done *atomic.Bool, onClose N.CloseHandlerFunc) {
-	originSource := source
-	originDestination := destination
+func (m *ConnectionManager) connectionCopy(ctx context.Context, source net.Conn, destination net.Conn, direction bool, done *atomic.Bool, onClose N.CloseHandlerFunc) {
+	var (
+		sourceReader      io.Reader = source
+		destinationWriter io.Writer = destination
+	)
 	var readCounters, writeCounters []N.CountFunc
 	for {
-		source, readCounters = N.UnwrapCountReader(source, readCounters)
-		destination, writeCounters = N.UnwrapCountWriter(destination, writeCounters)
-		if cachedSrc, isCached := source.(N.CachedReader); isCached {
+		sourceReader, readCounters = N.UnwrapCountReader(sourceReader, readCounters)
+		destinationWriter, writeCounters = N.UnwrapCountWriter(destinationWriter, writeCounters)
+		if cachedSrc, isCached := sourceReader.(N.CachedReader); isCached {
 			cachedBuffer := cachedSrc.ReadCached()
 			if cachedBuffer != nil {
 				dataLen := cachedBuffer.Len()
@@ -206,7 +212,7 @@ func (m *ConnectionManager) connectionCopy(ctx context.Context, source io.Reader
 					if done.Swap(true) {
 						onClose(err)
 					}
-					common.Close(originSource, originDestination)
+					common.Close(source, destination)
 					if !direction {
 						m.logger.ErrorContext(ctx, "connection upload payload: ", err)
 					} else {
@@ -225,20 +231,35 @@ func (m *ConnectionManager) connectionCopy(ctx context.Context, source io.Reader
 		}
 		break
 	}
-	_, err := bufio.CopyWithCounters(destination, source, originSource, readCounters, writeCounters)
+	if earlyConn, isEarlyConn := common.Cast[N.EarlyConn](destinationWriter); isEarlyConn && earlyConn.NeedHandshake() {
+		err := m.connectionCopyEarly(source, destination)
+		if err != nil {
+			if done.Swap(true) {
+				onClose(err)
+			}
+			common.Close(source, destination)
+			if !direction {
+				m.logger.ErrorContext(ctx, "connection upload handshake: ", err)
+			} else {
+				m.logger.ErrorContext(ctx, "connection download handshake: ", err)
+			}
+			return
+		}
+	}
+	_, err := bufio.CopyWithCounters(destinationWriter, sourceReader, source, readCounters, writeCounters)
 	if err != nil {
-		common.Close(originDestination)
+		common.Close(source, destination)
 	} else if duplexDst, isDuplex := destination.(N.WriteCloser); isDuplex {
 		err = duplexDst.CloseWrite()
 		if err != nil {
-			common.Close(originSource, originDestination)
+			common.Close(source, destination)
 		}
 	} else {
-		common.Close(originDestination)
+		destination.Close()
 	}
 	if done.Swap(true) {
 		onClose(err)
-		common.Close(originSource, originDestination)
+		common.Close(source, destination)
 	}
 	if !direction {
 		if err == nil {
@@ -259,16 +280,42 @@ func (m *ConnectionManager) connectionCopy(ctx context.Context, source io.Reader
 	}
 }
 
+func (m *ConnectionManager) connectionCopyEarly(source net.Conn, destination io.Writer) error {
+	payload := buf.NewPacket()
+	defer payload.Release()
+	err := source.SetReadDeadline(time.Now().Add(C.ReadPayloadTimeout))
+	if err != nil {
+		if err == os.ErrInvalid {
+			return common.Error(destination.Write(nil))
+		}
+		return err
+	}
+	_, err = payload.ReadOnceFrom(source)
+	if err != nil && !(E.IsTimeout(err) || errors.Is(err, io.EOF)) {
+		return E.Cause(err, "read payload")
+	}
+	_ = source.SetReadDeadline(time.Time{})
+	_, err = destination.Write(payload.Bytes())
+	if err != nil {
+		return E.Cause(err, "write payload")
+	}
+	return nil
+}
+
 func (m *ConnectionManager) packetConnectionCopy(ctx context.Context, source N.PacketReader, destination N.PacketWriter, direction bool, done *atomic.Bool, onClose N.CloseHandlerFunc) {
 	_, err := bufio.CopyPacket(destination, source)
 	if !direction {
-		if E.IsClosedOrCanceled(err) {
+		if err == nil {
+			m.logger.DebugContext(ctx, "packet upload finished")
+		} else if E.IsClosedOrCanceled(err) {
 			m.logger.TraceContext(ctx, "packet upload closed")
 		} else {
 			m.logger.DebugContext(ctx, "packet upload closed: ", err)
 		}
 	} else {
-		if E.IsClosedOrCanceled(err) {
+		if err == nil {
+			m.logger.DebugContext(ctx, "packet download finished")
+		} else if E.IsClosedOrCanceled(err) {
 			m.logger.TraceContext(ctx, "packet download closed")
 		} else {
 			m.logger.DebugContext(ctx, "packet download closed: ", err)

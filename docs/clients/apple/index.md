@@ -7,12 +7,9 @@ icon: material/apple
 SFI/SFM/SFT allows users to manage and run local or remote sing-box configuration files, and provides
 platform-specific function implementation, such as TUN transparent proxy implementation.
 
-!!! failure "Unavailable"
+!!! failure ""
 
-    Due to problems with our Apple developer account, sing-box apps on Apple platforms are temporarily unavailable for download or update.
-
-    If your company or organization is willing to help us return to the App Store, please [contact us](mailto:contact@sagernet.org).
-
+    We are temporarily unable to update sing-box apps on the App Store because the reviewer mistakenly found that we violated the rules (TestFlight users are not affected).
 
 ## :material-graph: Requirements
 

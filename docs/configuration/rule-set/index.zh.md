@@ -74,7 +74,7 @@ icon: material/new-box
 
 ==必填==
 
-一组 [无头规则](../headless-rule/).
+一组 [无头规则](./headless-rule/).
 
 ### 本地或远程字段
 
@@ -83,6 +83,8 @@ icon: material/new-box
 ==必填==
 
 规则集格式， `source` 或 `binary`。
+
+当 `path` 或 `url` 使用 `json` 或 `srs` 作为扩展名时可选。
 
 ### 本地字段
 
