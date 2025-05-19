@@ -28,14 +28,14 @@ jobs:
     - name: Setup Golang
       uses: actions/setup-go@v5
       with:
-        go-version: '1.22.2'
+        go-version: '1.24.3'
 
     - name: Setup Android environment
       uses: android-actions/setup-android@v3
 
     - name: Install gomobile
       run: |
-        go install github.com/sagernet/gomobile/cmd/gomobile@v0.1.3
+        go install github.com/sagernet/gomobile/cmd/gomobile@v0.1.6
         echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
 
     - name: Set VERSION_NAME
