@@ -29,15 +29,15 @@ require (
 	github.com/sagernet/gvisor v0.0.0-20241123041152-536d05261cff
 	github.com/sagernet/quic-go v0.49.0-beta.1
 	github.com/sagernet/reality v0.0.0-20230406110435-ee17307e7691
-	github.com/sagernet/sing v0.6.9
-	github.com/sagernet/sing-dns v0.4.3
+	github.com/sagernet/sing v0.6.10
+	github.com/sagernet/sing-dns v0.4.5
 	github.com/sagernet/sing-mux v0.3.2
-	github.com/sagernet/sing-quic v0.4.1-0.20250423030647-0eb05f373a76
-	github.com/sagernet/sing-shadowsocks v0.2.7
-	github.com/sagernet/sing-shadowsocks2 v0.2.0
+	github.com/sagernet/sing-quic v0.4.3
+	github.com/sagernet/sing-shadowsocks v0.2.8
+	github.com/sagernet/sing-shadowsocks2 v0.2.1
 	github.com/sagernet/sing-shadowtls v0.2.0
 	github.com/sagernet/sing-tun v0.6.5
-	github.com/sagernet/sing-vmess v0.2.1
+	github.com/sagernet/sing-vmess v0.2.3
 	github.com/sagernet/smux v1.5.34-mod.2
 	github.com/sagernet/utls v1.6.7
 	github.com/sagernet/wireguard-go v0.0.1-beta.7
@@ -58,11 +58,11 @@ require (
 )
 
 //replace github.com/sagernet/sing => ../sing
-replace github.com/sagernet/sing-shadowtls => github.com/maskedeken/sing-shadowtls v0.0.0-20250518121535-caa339192ce9
+replace github.com/sagernet/sing-shadowtls => github.com/maskedeken/sing-shadowtls v0.0.0-20250607145916-e4d9a8ab25a1
 
-replace github.com/sagernet/sing-shadowsocks2 => github.com/maskedeken/sing-shadowsocks2 v0.0.0-20240113115153-494ddd0e4d96
+replace github.com/sagernet/sing-shadowsocks2 => github.com/maskedeken/sing-shadowsocks2 v0.0.0-20250607150815-72e8d7f3658d
 
-replace github.com/sagernet/sing-vmess => github.com/maskedeken/sing-vmess v0.0.0-20250519023338-555ed0190962
+replace github.com/sagernet/sing-vmess => github.com/maskedeken/sing-vmess v0.0.0-20250607150200-cce5ead3d030
 
 require (
 	github.com/ajg/form v1.5.1 // indirect
