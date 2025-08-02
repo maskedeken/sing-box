@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"net"
+	"net/netip"
 	"os"
 	"runtime"
 	"strings"
@@ -55,13 +56,30 @@ type NetworkManager struct {
 }
 
 func NewNetworkManager(ctx context.Context, logger logger.ContextLogger, routeOptions option.RouteOptions) (*NetworkManager, error) {
+	defaultDomainResolver := common.PtrValueOrDefault(routeOptions.DefaultDomainResolver)
+	if routeOptions.AutoDetectInterface && !(C.IsLinux || C.IsDarwin || C.IsWindows) {
+		return nil, E.New("`auto_detect_interface` is only supported on Linux, Windows and macOS")
+	} else if routeOptions.OverrideAndroidVPN && !C.IsAndroid {
+		return nil, E.New("`override_android_vpn` is only supported on Android")
+	} else if routeOptions.DefaultInterface != "" && !(C.IsLinux || C.IsDarwin || C.IsWindows) {
+		return nil, E.New("`default_interface` is only supported on Linux, Windows and macOS")
+	} else if routeOptions.DefaultMark != 0 && !C.IsLinux {
+		return nil, E.New("`default_mark` is only supported on linux")
+	}
 	nm := &NetworkManager{
 		logger:              logger,
 		interfaceFinder:     control.NewDefaultInterfaceFinder(),
 		autoDetectInterface: routeOptions.AutoDetectInterface,
 		defaultOptions: adapter.NetworkOptions{
-			BindInterface:       routeOptions.DefaultInterface,
-			RoutingMark:         uint32(routeOptions.DefaultMark),
+			BindInterface:  routeOptions.DefaultInterface,
+			RoutingMark:    uint32(routeOptions.DefaultMark),
+			DomainResolver: defaultDomainResolver.Server,
+			DomainResolveOptions: adapter.DNSQueryOptions{
+				Strategy:     C.DomainStrategy(defaultDomainResolver.Strategy),
+				DisableCache: defaultDomainResolver.DisableCache,
+				RewriteTTL:   defaultDomainResolver.RewriteTTL,
+				ClientSubnet: defaultDomainResolver.ClientSubnet.Build(netip.Prefix{}),
+			},
 			NetworkStrategy:     (*C.NetworkStrategy)(routeOptions.DefaultNetworkStrategy),
 			NetworkType:         common.Map(routeOptions.DefaultNetworkType, option.InterfaceType.Build),
 			FallbackNetworkType: common.Map(routeOptions.DefaultFallbackNetworkType, option.InterfaceType.Build),
@@ -294,7 +312,7 @@ func (r *NetworkManager) AutoDetectInterfaceFunc() control.Func {
 		if r.interfaceMonitor == nil {
 			return nil
 		}
-		return control.BindToInterfaceFunc(r.interfaceFinder, func(network string, address string) (interfaceName string, interfaceIndex int, err error) {
+		bindFunc := control.BindToInterfaceFunc(r.interfaceFinder, func(network string, address string) (interfaceName string, interfaceIndex int, err error) {
 			remoteAddr := M.ParseSocksaddr(address).Addr
 			if remoteAddr.IsValid() {
 				iif, err := r.interfaceFinder.ByAddr(remoteAddr)
@@ -308,6 +326,16 @@ func (r *NetworkManager) AutoDetectInterfaceFunc() control.Func {
 			}
 			return defaultInterface.Name, defaultInterface.Index, nil
 		})
+		return func(network, address string, conn syscall.RawConn) error {
+			err := bindFunc(network, address, conn)
+			if err != nil {
+				return err
+			}
+			if r.autoRedirectOutputMark > 0 {
+				return control.RoutingMark(r.autoRedirectOutputMark)(network, address, conn)
+			}
+			return nil
+		}
 	}
 }
 

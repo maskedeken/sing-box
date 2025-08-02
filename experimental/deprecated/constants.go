@@ -144,6 +144,61 @@ var OptionTUNGSO = Note{
 	DeprecatedVersion: "1.11.0",
 	ScheduledVersion:  "1.12.0",
 	EnvName:           "TUN_GSO",
+	MigrationLink:     "https://sing-box.sagernet.org/deprecated/#gso-option-in-tun",
+}
+
+var OptionLegacyDNSTransport = Note{
+	Name:              "legacy-dns-transport",
+	Description:       "legacy DNS servers",
+	DeprecatedVersion: "1.12.0",
+	ScheduledVersion:  "1.14.0",
+	EnvName:           "LEGACY_DNS_SERVERS",
+	MigrationLink:     "https://sing-box.sagernet.org/migration/#migrate-to-new-dns-server-formats",
+}
+
+var OptionLegacyDNSFakeIPOptions = Note{
+	Name:              "legacy-dns-fakeip-options",
+	Description:       "legacy DNS fakeip options",
+	DeprecatedVersion: "1.12.0",
+	ScheduledVersion:  "1.14.0",
+	EnvName:           "LEGACY_DNS_FAKEIP_OPTIONS",
+	MigrationLink:     "https://sing-box.sagernet.org/migration/#migrate-to-new-dns-server-formats",
+}
+
+var OptionOutboundDNSRuleItem = Note{
+	Name:              "outbound-dns-rule-item",
+	Description:       "outbound DNS rule item",
+	DeprecatedVersion: "1.12.0",
+	ScheduledVersion:  "1.14.0",
+	EnvName:           "OUTBOUND_DNS_RULE_ITEM",
+	MigrationLink:     "https://sing-box.sagernet.org/migration/#migrate-outbound-dns-rule-items-to-domain-resolver",
+}
+
+var OptionMissingDomainResolver = Note{
+	Name:              "missing-domain-resolver",
+	Description:       "missing `route.default_domain_resolver` or `domain_resolver` in dial fields",
+	DeprecatedVersion: "1.12.0",
+	ScheduledVersion:  "1.14.0",
+	EnvName:           "MISSING_DOMAIN_RESOLVER",
+	MigrationLink:     "https://sing-box.sagernet.org/migration/#migrate-outbound-dns-rule-items-to-domain-resolver",
+}
+
+var OptionLegacyECHOptions = Note{
+	Name:              "legacy-ech-options",
+	Description:       "legacy ECH options",
+	DeprecatedVersion: "1.12.0",
+	ScheduledVersion:  "1.13.0",
+	EnvName:           "LEGACY_ECH_OPTIONS",
+	MigrationLink:     "https://sing-box.sagernet.org/deprecated/#legacy-ech-fields",
+}
+
+var OptionLegacyDomainStrategyOptions = Note{
+	Name:              "legacy-domain-strategy-options",
+	Description:       "legacy domain strategy options",
+	DeprecatedVersion: "1.12.0",
+	ScheduledVersion:  "1.14.0",
+	EnvName:           "LEGACY_DOMAIN_STRATEGY_OPTIONS",
+	MigrationLink:     "https://sing-box.sagernet.org/migration/#migrate-domain-strategy-options",
 }
 
 var Options = []Note{
@@ -157,4 +212,10 @@ var Options = []Note{
 	OptionWireGuardOutbound,
 	OptionWireGuardGSO,
 	OptionTUNGSO,
+	OptionLegacyDNSTransport,
+	OptionLegacyDNSFakeIPOptions,
+	OptionOutboundDNSRuleItem,
+	OptionMissingDomainResolver,
+	OptionLegacyECHOptions,
+	OptionLegacyDomainStrategyOptions,
 }

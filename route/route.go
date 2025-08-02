@@ -6,7 +6,6 @@ import (
 	"net"
 	"net/netip"
 	"os"
-	"os/user"
 	"strings"
 	"time"
 
@@ -17,7 +16,6 @@ import (
 	C "github.com/sagernet/sing-box/constant"
 	"github.com/sagernet/sing-box/option"
 	R "github.com/sagernet/sing-box/route/rule"
-	"github.com/sagernet/sing-dns"
 	"github.com/sagernet/sing-mux"
 	"github.com/sagernet/sing-vmess"
 	"github.com/sagernet/sing/common"
@@ -114,8 +112,7 @@ func (r *Router) routeConnection(ctx context.Context, conn net.Conn, metadata ad
 			}
 		case *R.RuleActionReject:
 			buf.ReleaseMulti(buffers)
-			N.CloseOnHandshakeFailure(conn, onClose, action.Error(ctx))
-			return nil
+			return action.Error(ctx)
 		case *R.RuleActionHijackDNS:
 			for _, buffer := range buffers {
 				conn = bufio.NewCachedConn(conn, buffer)
@@ -230,11 +227,9 @@ func (r *Router) routePacketConnection(ctx context.Context, conn N.PacketConn, m
 			}
 		case *R.RuleActionReject:
 			N.ReleaseMultiPacketBuffer(packetBuffers)
-			N.CloseOnHandshakeFailure(conn, onClose, action.Error(ctx))
-			return nil
+			return action.Error(ctx)
 		case *R.RuleActionHijackDNS:
-			r.hijackDNSPacket(ctx, conn, packetBuffers, metadata, onClose)
-			return nil
+			return r.hijackDNSPacket(ctx, conn, packetBuffers, metadata, onClose)
 		}
 	}
 	if selectedRule == nil || selectReturn {
@@ -297,16 +292,16 @@ func (r *Router) matchRule(
 			r.logger.InfoContext(ctx, "failed to search process: ", fErr)
 		} else {
 			if processInfo.ProcessPath != "" {
-				r.logger.InfoContext(ctx, "found process path: ", processInfo.ProcessPath)
+				if processInfo.User != "" {
+					r.logger.InfoContext(ctx, "found process path: ", processInfo.ProcessPath, ", user: ", processInfo.User)
+				} else if processInfo.UserId != -1 {
+					r.logger.InfoContext(ctx, "found process path: ", processInfo.ProcessPath, ", user id: ", processInfo.UserId)
+				} else {
+					r.logger.InfoContext(ctx, "found process path: ", processInfo.ProcessPath)
+				}
 			} else if processInfo.PackageName != "" {
 				r.logger.InfoContext(ctx, "found package name: ", processInfo.PackageName)
 			} else if processInfo.UserId != -1 {
-				if /*needUserName &&*/ true {
-					osUser, _ := user.LookupId(F.ToString(processInfo.UserId))
-					if osUser != nil {
-						processInfo.User = osUser.Username
-					}
-				}
 				if processInfo.User != "" {
 					r.logger.InfoContext(ctx, "found user: ", processInfo.User)
 				} else {
@@ -316,22 +311,23 @@ func (r *Router) matchRule(
 			metadata.ProcessInfo = processInfo
 		}
 	}
-	if r.fakeIPStore != nil && r.fakeIPStore.Contains(metadata.Destination.Addr) {
-		domain, loaded := r.fakeIPStore.Lookup(metadata.Destination.Addr)
+	if metadata.Destination.Addr.IsValid() && r.dnsTransport.FakeIP() != nil && r.dnsTransport.FakeIP().Store().Contains(metadata.Destination.Addr) {
+		domain, loaded := r.dnsTransport.FakeIP().Store().Lookup(metadata.Destination.Addr)
 		if !loaded {
-			fatalErr = E.New("missing fakeip record, try to configure experimental.cache_file")
+			fatalErr = E.New("missing fakeip record, try enable `experimental.cache_file`")
 			return
 		}
-		metadata.OriginDestination = metadata.Destination
-		metadata.Destination = M.Socksaddr{
-			Fqdn: domain,
-			Port: metadata.Destination.Port,
+		if domain != "" {
+			metadata.OriginDestination = metadata.Destination
+			metadata.Destination = M.Socksaddr{
+				Fqdn: domain,
+				Port: metadata.Destination.Port,
+			}
+			metadata.FakeIP = true
+			r.logger.DebugContext(ctx, "found fakeip domain: ", domain)
 		}
-		metadata.FakeIP = true
-		r.logger.DebugContext(ctx, "found fakeip domain: ", domain)
-	}
-	if r.dnsReverseMapping != nil && metadata.Domain == "" {
-		domain, loaded := r.dnsReverseMapping.Query(metadata.Destination.Addr)
+	} else if metadata.Domain == "" {
+		domain, loaded := r.dns.LookupReverseMapping(metadata.Destination.Addr)
 		if loaded {
 			metadata.Domain = domain
 			r.logger.DebugContext(ctx, "found reserve mapped domain: ", metadata.Domain)
@@ -360,9 +356,9 @@ func (r *Router) matchRule(
 				packetBuffers = newPackerBuffers
 			}
 		}
-		if dns.DomainStrategy(metadata.InboundOptions.DomainStrategy) != dns.DomainStrategyAsIS {
+		if C.DomainStrategy(metadata.InboundOptions.DomainStrategy) != C.DomainStrategyAsIS {
 			fatalErr = r.actionResolve(ctx, metadata, &R.RuleActionResolve{
-				Strategy: dns.DomainStrategy(metadata.InboundOptions.DomainStrategy),
+				Strategy: C.DomainStrategy(metadata.InboundOptions.DomainStrategy),
 			})
 			if fatalErr != nil {
 				return
@@ -445,6 +441,13 @@ match:
 			}
 			if routeOptions.UDPTimeout > 0 {
 				metadata.UDPTimeout = routeOptions.UDPTimeout
+			}
+			if routeOptions.TLSFragment {
+				metadata.TLSFragment = true
+				metadata.TLSFragmentFallbackDelay = routeOptions.TLSFragmentFallbackDelay
+			}
+			if routeOptions.TLSRecordFragment {
+				metadata.TLSRecordFragment = true
 			}
 		}
 		switch action := currentRule.Action().(type) {
@@ -565,6 +568,7 @@ func (r *Router) actionSniff(
 				sniff.UTP,
 				sniff.UDPTracker,
 				sniff.DTLSRecord,
+				sniff.NTP,
 			}
 		}
 		for {
@@ -651,13 +655,26 @@ func (r *Router) actionSniff(
 
 func (r *Router) actionResolve(ctx context.Context, metadata *adapter.InboundContext, action *R.RuleActionResolve) error {
 	if metadata.Destination.IsFqdn() {
-		metadata.DNSServer = action.Server
-		addresses, err := r.Lookup(adapter.WithContext(ctx, metadata), metadata.Destination.Fqdn, action.Strategy)
+		var transport adapter.DNSTransport
+		if action.Server != "" {
+			var loaded bool
+			transport, loaded = r.dnsTransport.Transport(action.Server)
+			if !loaded {
+				return E.New("DNS server not found: ", action.Server)
+			}
+		}
+		addresses, err := r.dns.Lookup(adapter.WithContext(ctx, metadata), metadata.Destination.Fqdn, adapter.DNSQueryOptions{
+			Transport:    transport,
+			Strategy:     action.Strategy,
+			DisableCache: action.DisableCache,
+			RewriteTTL:   action.RewriteTTL,
+			ClientSubnet: action.ClientSubnet,
+		})
 		if err != nil {
 			return err
 		}
 		metadata.DestinationAddresses = addresses
-		r.dnsLogger.DebugContext(ctx, "resolved [", strings.Join(F.MapToString(metadata.DestinationAddresses), " "), "]")
+		r.logger.DebugContext(ctx, "resolved [", strings.Join(F.MapToString(metadata.DestinationAddresses), " "), "]")
 		if metadata.Destination.IsIPv4() {
 			metadata.IPVersion = 4
 		} else if metadata.Destination.IsIPv6() {

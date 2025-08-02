@@ -1,6 +1,10 @@
 ---
-icon: material/new-box
+icon: material/alert-decagram
 ---
+
+!!! quote "Changes in sing-box 1.12.0"
+
+    :material-decagram: [servers](#servers)
 
 !!! quote "Changes in sing-box 1.11.0"
 
@@ -48,8 +52,6 @@ The first server will be used if empty.
 Default domain strategy for resolving the domain names.
 
 One of `prefer_ipv4` `prefer_ipv6` `ipv4_only` `ipv6_only`.
-
-Take no effect if `server.strategy` is set.
 
 #### disable_cache
 

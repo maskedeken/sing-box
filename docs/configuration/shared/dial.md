@@ -2,6 +2,12 @@
 icon: material/new-box
 ---
 
+!!! quote "Changes in sing-box 1.12.0"
+
+    :material-plus: [domain_resolver](#domain_resolver)  
+    :material-delete-clock: [domain_strategy](#domain_strategy)  
+    :material-plus: [netns](#netns)
+
 !!! quote "Changes in sing-box 1.11.0"
 
     :material-plus: [network_strategy](#network_strategy)  
@@ -13,21 +19,27 @@ icon: material/new-box
 
 ```json
 {
-  "detour": "upstream-out",
-  "bind_interface": "en0",
-  "inet4_bind_address": "0.0.0.0",
-  "inet6_bind_address": "::",
-  "routing_mark": 1234,
+  "detour": "",
+  "bind_interface": "",
+  "inet4_bind_address": "",
+  "inet6_bind_address": "",
+  "routing_mark": 0,
   "reuse_addr": false,
-  "connect_timeout": "5s",
+  "netns": "",
+  "connect_timeout": "",
   "tcp_fast_open": false,
   "tcp_multi_path": false,
   "udp_fragment": false,
-  "domain_strategy": "prefer_ipv6",
-  "network_strategy": "default",
+  
+  "domain_resolver": "", // or {}
+  "network_strategy": "",
   "network_type": [],
   "fallback_network_type": [],
-  "fallback_delay": "300ms"
+  "fallback_delay": "",
+
+  // Deprecated
+  
+  "domain_strategy": ""
 }
 ```
 
@@ -63,9 +75,30 @@ The IPv6 address to bind to.
 
 Set netfilter routing mark.
 
+Integers (e.g. `1234`) and string hexadecimals (e.g. `"0x1234"`) are supported.
+
 #### reuse_addr
 
 Reuse listener address.
+
+#### netns
+
+!!! question "Since sing-box 1.12.0"
+
+!!! quote ""
+
+    Only supported on Linux.
+
+Set network namespace, name or path.
+
+#### connect_timeout
+
+Connect timeout, in golang's Duration format.
+
+A duration string is a possibly signed sequence of
+decimal numbers, each with optional fraction and a unit suffix,
+such as "300ms", "-1.5h" or "2h45m".
+Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h".
 
 #### tcp_fast_open
 
@@ -83,25 +116,26 @@ Enable TCP Multi Path.
 
 Enable UDP fragmentation.
 
-#### connect_timeout
+#### domain_resolver
 
-Connect timeout, in golang's Duration format.
+!!! warning ""
 
-A duration string is a possibly signed sequence of
-decimal numbers, each with optional fraction and a unit suffix,
-such as "300ms", "-1.5h" or "2h45m".
-Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h".
+    `outbound` DNS rule items are deprecated and will be removed in sing-box 1.14.0, so this item will be required for outbound/endpoints using domain name in server address since sing-box 1.14.0.
 
-#### domain_strategy
+!!! info ""
 
-Available values: `prefer_ipv4`, `prefer_ipv6`, `ipv4_only`, `ipv6_only`.
+    `domain_resolver` or `route.default_domain_resolver` is optional when only one DNS server is configured.
 
-If set, the requested domain name will be resolved to IP before connect.
+Set domain resolver to use for resolving domain names.
 
-| Outbound | Effected domains         | Fallback Value                            |
-|----------|--------------------------|-------------------------------------------|
-| `direct` | Domain in request        | Take `inbound.domain_strategy` if not set | 
-| others   | Domain in server address | /                                         |
+This option uses the same format as the [route DNS rule action](/configuration/dns/rule_action/#route) without the `action` field.
+
+Setting this option directly to a string is equivalent to setting `server` of this options.
+
+| Outbound/Endpoints | Effected domains         |
+|--------------------|--------------------------|
+| `direct`           | Domain in request        | 
+| others             | Domain in server address |
 
 #### network_strategy
 
@@ -171,3 +205,19 @@ back to other interfaces.
 Only take effect when `domain_strategy` or `network_strategy` is set.
 
 `300ms` is used by default.
+
+#### domain_strategy
+
+!!! failure "Deprecated in sing-box 1.12.0"
+
+    `domain_strategy` is deprecated and will be removed in sing-box 1.14.0, check [Migration](/migration/#migrate-outbound-domain-strategy-option-to-domain-resolver).
+
+Available values: `prefer_ipv4`, `prefer_ipv6`, `ipv4_only`, `ipv6_only`.
+
+If set, the requested domain name will be resolved to IP before connect.
+
+| Outbound | Effected domains         | Fallback Value                            |
+|----------|--------------------------|-------------------------------------------|
+| `direct` | Domain in request        | Take `inbound.domain_strategy` if not set | 
+| others   | Domain in server address | /                                         |
+

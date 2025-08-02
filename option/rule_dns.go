@@ -83,6 +83,7 @@ type RawDefaultDNSRule struct {
 	GeoIP                    badoption.Listable[string]        `json:"geoip,omitempty"`
 	IPCIDR                   badoption.Listable[string]        `json:"ip_cidr,omitempty"`
 	IPIsPrivate              bool                              `json:"ip_is_private,omitempty"`
+	IPAcceptAny              bool                              `json:"ip_accept_any,omitempty"`
 	SourceIPCIDR             badoption.Listable[string]        `json:"source_ip_cidr,omitempty"`
 	SourceIPIsPrivate        bool                              `json:"source_ip_is_private,omitempty"`
 	SourcePort               badoption.Listable[uint16]        `json:"source_port,omitempty"`
@@ -131,7 +132,6 @@ func (r *DefaultDNSRule) UnmarshalJSONContext(ctx context.Context, data []byte) 
 func (r DefaultDNSRule) IsValid() bool {
 	var defaultValue DefaultDNSRule
 	defaultValue.Invert = r.Invert
-	defaultValue.DNSRuleAction = r.DNSRuleAction
 	return !reflect.DeepEqual(r, defaultValue)
 }
 

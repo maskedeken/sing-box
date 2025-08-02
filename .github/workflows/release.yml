@@ -48,7 +48,7 @@ jobs:
         mkdir -p clients/android/app/libs
         go mod download
         gomobile init
-        gomobile bind -o clients/android/app/libs/libbox.aar -v -androidapi 21 -trimpath -ldflags="-s -w -buildid= -X github.com/sagernet/sing-box/constant.Version=${{ env.VERSION_NAME }}" -libname=box -buildvcs=false -javapkg=io.nekohasekai -tags="with_conntrack,with_gvisor,with_quic,with_wireguard,with_utls,with_clash_api,with_ech" ./experimental/libbox
+        gomobile bind -o clients/android/app/libs/libbox.aar -v -androidapi 21 -trimpath -ldflags="-s -w -buildid= -X github.com/sagernet/sing-box/constant.Version=${{ env.VERSION_NAME }}" -libname=box -buildvcs=false -javapkg=io.nekohasekai -tags="with_conntrack,with_gvisor,with_quic,with_wireguard,with_utls,with_clash_api" ./experimental/libbox
 
     - name: Build APK
       run: |

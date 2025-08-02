@@ -11,9 +11,8 @@ type HeadlessRule interface {
 
 type Rule interface {
 	HeadlessRule
-	Service
+	SimpleLifecycle
 	Type() string
-	UpdateGeosite() error
 	Action() RuleAction
 }
 

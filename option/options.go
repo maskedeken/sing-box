@@ -14,10 +14,12 @@ type _Options struct {
 	Log          *LogOptions          `json:"log,omitempty"`
 	DNS          *DNSOptions          `json:"dns,omitempty"`
 	NTP          *NTPOptions          `json:"ntp,omitempty"`
+	Certificate  *CertificateOptions  `json:"certificate,omitempty"`
 	Endpoints    []Endpoint           `json:"endpoints,omitempty"`
 	Inbounds     []Inbound            `json:"inbounds,omitempty"`
 	Outbounds    []Outbound           `json:"outbounds,omitempty"`
 	Route        *RouteOptions        `json:"route,omitempty"`
+	Services     []Service            `json:"services,omitempty"`
 	Experimental *ExperimentalOptions `json:"experimental,omitempty"`
 }
 

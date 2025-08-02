@@ -4,7 +4,6 @@ import (
 	"context"
 	"net"
 	"net/netip"
-	"syscall"
 	"time"
 
 	"github.com/sagernet/sing-box/adapter"
@@ -17,7 +16,6 @@ import (
 	"github.com/sagernet/sing/common"
 	"github.com/sagernet/sing/common/buf"
 	"github.com/sagernet/sing/common/control"
-	E "github.com/sagernet/sing/common/exceptions"
 	M "github.com/sagernet/sing/common/metadata"
 	N "github.com/sagernet/sing/common/network"
 	"github.com/sagernet/sing/common/udpnat2"
@@ -57,6 +55,7 @@ func NewTProxy(ctx context.Context, router adapter.Router, logger log.ContextLog
 		Listen:            options.ListenOptions,
 		ConnectionHandler: tproxy,
 		OOBPacketHandler:  tproxy,
+		TProxy:            true,
 	})
 	return tproxy, nil
 }
@@ -65,27 +64,7 @@ func (t *TProxy) Start(stage adapter.StartStage) error {
 	if stage != adapter.StartStateStart {
 		return nil
 	}
-	err := t.listener.Start()
-	if err != nil {
-		return err
-	}
-	if listener := t.listener.TCPListener(); listener != nil {
-		err = control.Conn(common.MustCast[syscall.Conn](listener), func(fd uintptr) error {
-			return redir.TProxy(fd, M.SocksaddrFromNet(listener.Addr()).Addr.Is6())
-		})
-		if err != nil {
-			return E.Cause(err, "configure tproxy TCP listener")
-		}
-	}
-	if conn := t.listener.UDPConn(); conn != nil {
-		err = control.Conn(conn, func(fd uintptr) error {
-			return redir.TProxy(fd, M.SocksaddrFromNet(conn.LocalAddr()).Addr.Is6())
-		})
-		if err != nil {
-			return E.Cause(err, "configure tproxy UDP listener")
-		}
-	}
-	return nil
+	return t.listener.Start()
 }
 
 func (t *TProxy) Close() error {
@@ -121,40 +100,48 @@ func (t *TProxy) NewPacketEx(buffer *buf.Buffer, oob []byte, source M.Socksaddr)
 	t.udpNat.NewPacket([][]byte{buffer.Bytes()}, source, M.SocksaddrFromNetIP(destination), nil)
 }
 
-type tproxyPacketWriter struct {
-	ctx         context.Context
-	source      netip.AddrPort
-	destination M.Socksaddr
-	conn        *net.UDPConn
-}
-
 func (t *TProxy) preparePacketConnection(source M.Socksaddr, destination M.Socksaddr, userData any) (bool, context.Context, N.PacketWriter, N.CloseHandlerFunc) {
 	ctx := log.ContextWithNewID(t.ctx)
-	writer := &tproxyPacketWriter{ctx: ctx, source: source.AddrPort(), destination: destination}
+	writer := &tproxyPacketWriter{
+		ctx:         ctx,
+		listener:    t.listener,
+		source:      source.AddrPort(),
+		destination: destination,
+	}
 	return true, ctx, writer, func(it error) {
 		common.Close(common.PtrOrNil(writer.conn))
 	}
 }
 
+type tproxyPacketWriter struct {
+	ctx         context.Context
+	listener    *listener.Listener
+	source      netip.AddrPort
+	destination M.Socksaddr
+	conn        *net.UDPConn
+}
+
 func (w *tproxyPacketWriter) WritePacket(buffer *buf.Buffer, destination M.Socksaddr) error {
 	defer buffer.Release()
-	conn := w.conn
-	if w.destination == destination && conn != nil {
-		_, err := conn.WriteToUDPAddrPort(buffer.Bytes(), w.source)
-		if err != nil {
-			w.conn = nil
+	if w.listener.ListenOptions().NetNs == "" {
+		conn := w.conn
+		if w.destination == destination && conn != nil {
+			_, err := conn.WriteToUDPAddrPort(buffer.Bytes(), w.source)
+			if err != nil {
+				w.conn = nil
+			}
+			return err
 		}
-		return err
 	}
-	var listener net.ListenConfig
-	listener.Control = control.Append(listener.Control, control.ReuseAddr())
-	listener.Control = control.Append(listener.Control, redir.TProxyWriteBack())
-	packetConn, err := listener.ListenPacket(w.ctx, "udp", destination.String())
+	var listenConfig net.ListenConfig
+	listenConfig.Control = control.Append(listenConfig.Control, control.ReuseAddr())
+	listenConfig.Control = control.Append(listenConfig.Control, redir.TProxyWriteBack())
+	packetConn, err := w.listener.ListenPacket(listenConfig, w.ctx, "udp", destination.String())
 	if err != nil {
 		return err
 	}
 	udpConn := packetConn.(*net.UDPConn)
-	if w.destination == destination {
+	if w.listener.ListenOptions().NetNs == "" && w.destination == destination {
 		w.conn = udpConn
 	} else {
 		defer udpConn.Close()

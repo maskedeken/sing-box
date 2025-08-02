@@ -23,9 +23,10 @@ icon: material/new-box
 
 ### 字段
 
-| 类型          | 格式                        | 
+| 类型          | 格式                        |
 |-------------|---------------------------|
-| `wireguard` | [WireGuard](./wiregaurd/) | 
+| `wireguard` | [WireGuard](./wireguard/) |
+| `tailscale` | [Tailscale](./tailscale/) |
 
 #### tag
 

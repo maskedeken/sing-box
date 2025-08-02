@@ -1,7 +1,3 @@
----
-icon: material/new-box
----
-
 !!! quote "Changes in sing-box 1.10.0"
 
     :material-plus: QUIC client type detect support for QUIC  
@@ -26,6 +22,7 @@ If enabled in the inbound, the protocol and domain name (if present) of by the c
 |   UDP   |    `dtls`    |      /      |        /         |
 |   TCP   |    `ssh`     |      /      | SSH Client Name  |
 |   TCP   |    `rdp`     |      /      |        /         |
+|   UDP   |    `ntp`     |      /      |        /         |
 
 |       QUIC Client        |    Type    |
 |:------------------------:|:----------:|

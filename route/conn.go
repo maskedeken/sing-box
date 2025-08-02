@@ -7,12 +7,14 @@ import (
 	"net"
 	"net/netip"
 	"os"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
 
 	"github.com/sagernet/sing-box/adapter"
 	"github.com/sagernet/sing-box/common/dialer"
+	"github.com/sagernet/sing-box/common/tlsfragment"
 	C "github.com/sagernet/sing-box/constant"
 	"github.com/sagernet/sing/common"
 	"github.com/sagernet/sing/common/buf"
@@ -65,7 +67,17 @@ func (m *ConnectionManager) NewConnection(ctx context.Context, this N.Dialer, co
 		remoteConn, err = this.DialContext(ctx, N.NetworkTCP, metadata.Destination)
 	}
 	if err != nil {
-		err = E.Cause(err, "open outbound connection")
+		var remoteString string
+		if len(metadata.DestinationAddresses) > 0 {
+			remoteString = "[" + strings.Join(common.Map(metadata.DestinationAddresses, netip.Addr.String), ",") + "]"
+		} else {
+			remoteString = metadata.Destination.String()
+		}
+		var dialerString string
+		if outbound, isOutbound := this.(adapter.Outbound); isOutbound {
+			dialerString = " using outbound/" + outbound.Type() + "[" + outbound.Tag() + "]"
+		}
+		err = E.Cause(err, "open connection to ", remoteString, dialerString)
 		N.CloseOnHandshakeFailure(conn, onClose, err)
 		m.logger.ErrorContext(ctx, err)
 		return
@@ -77,6 +89,9 @@ func (m *ConnectionManager) NewConnection(ctx context.Context, this N.Dialer, co
 		N.CloseOnHandshakeFailure(conn, onClose, err)
 		m.logger.ErrorContext(ctx, err)
 		return
+	}
+	if metadata.TLSFragment || metadata.TLSRecordFragment {
+		remoteConn = tf.NewConn(remoteConn, ctx, metadata.TLSFragment, metadata.TLSRecordFragment, metadata.TLSFragmentFallbackDelay)
 	}
 	m.access.Lock()
 	element := m.connections.PushBack(conn)
@@ -117,8 +132,19 @@ func (m *ConnectionManager) NewPacketConnection(ctx context.Context, this N.Dial
 			remoteConn, err = this.DialContext(ctx, N.NetworkUDP, metadata.Destination)
 		}
 		if err != nil {
+			var remoteString string
+			if len(metadata.DestinationAddresses) > 0 {
+				remoteString = "[" + strings.Join(common.Map(metadata.DestinationAddresses, netip.Addr.String), ",") + "]"
+			} else {
+				remoteString = metadata.Destination.String()
+			}
+			var dialerString string
+			if outbound, isOutbound := this.(adapter.Outbound); isOutbound {
+				dialerString = " using outbound/" + outbound.Type() + "[" + outbound.Tag() + "]"
+			}
+			err = E.Cause(err, "open packet connection to ", remoteString, dialerString)
 			N.CloseOnHandshakeFailure(conn, onClose, err)
-			m.logger.ErrorContext(ctx, "open outbound packet connection: ", err)
+			m.logger.ErrorContext(ctx, err)
 			return
 		}
 		remotePacketConn = bufio.NewUnbindPacketConn(remoteConn)
@@ -133,8 +159,13 @@ func (m *ConnectionManager) NewPacketConnection(ctx context.Context, this N.Dial
 			remotePacketConn, err = this.ListenPacket(ctx, metadata.Destination)
 		}
 		if err != nil {
+			var dialerString string
+			if outbound, isOutbound := this.(adapter.Outbound); isOutbound {
+				dialerString = " using outbound/" + outbound.Type() + "[" + outbound.Tag() + "]"
+			}
+			err = E.Cause(err, "listen packet connection using ", dialerString)
 			N.CloseOnHandshakeFailure(conn, onClose, err)
-			m.logger.ErrorContext(ctx, "listen outbound packet connection: ", err)
+			m.logger.ErrorContext(ctx, err)
 			return
 		}
 	}
@@ -246,7 +277,7 @@ func (m *ConnectionManager) connectionCopy(ctx context.Context, source net.Conn,
 			return
 		}
 	}
-	_, err := bufio.CopyWithCounters(destinationWriter, sourceReader, source, readCounters, writeCounters)
+	_, err := bufio.CopyWithCounters(destinationWriter, sourceReader, source, readCounters, writeCounters, bufio.DefaultIncreaseBufferAfter, bufio.DefaultBatchSize)
 	if err != nil {
 		common.Close(source, destination)
 	} else if duplexDst, isDuplex := destination.(N.WriteCloser); isDuplex {

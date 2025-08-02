@@ -27,12 +27,15 @@ import (
 	"time"
 	"unsafe"
 
+	"github.com/sagernet/sing-box/adapter"
 	"github.com/sagernet/sing-box/option"
+	"github.com/sagernet/sing/common"
 	"github.com/sagernet/sing/common/debug"
 	E "github.com/sagernet/sing/common/exceptions"
+	"github.com/sagernet/sing/common/ntp"
 	aTLS "github.com/sagernet/sing/common/tls"
-	utls "github.com/sagernet/utls"
 
+	utls "github.com/metacubex/utls"
 	"golang.org/x/crypto/hkdf"
 	"golang.org/x/net/http2"
 )
@@ -40,6 +43,7 @@ import (
 var _ ConfigCompat = (*RealityClientConfig)(nil)
 
 type RealityClientConfig struct {
+	ctx       context.Context
 	uClient   *UTLSClientConfig
 	publicKey []byte
 	shortID   [8]byte
@@ -70,7 +74,7 @@ func NewRealityClient(ctx context.Context, serverAddress string, options option.
 	if decodedLen > 8 {
 		return nil, E.New("invalid short_id")
 	}
-	return &RealityClientConfig{uClient, publicKey, shortID}, nil
+	return &RealityClientConfig{ctx, uClient.(*UTLSClientConfig), publicKey, shortID}, nil
 }
 
 func (e *RealityClientConfig) ServerName() string {
@@ -111,6 +115,22 @@ func (e *RealityClientConfig) ClientHandshake(ctx context.Context, conn net.Conn
 	if err != nil {
 		return nil, err
 	}
+	for _, extension := range uConn.Extensions {
+		if ce, ok := extension.(*utls.SupportedCurvesExtension); ok {
+			ce.Curves = common.Filter(ce.Curves, func(curveID utls.CurveID) bool {
+				return curveID != utls.X25519MLKEM768
+			})
+		}
+		if ks, ok := extension.(*utls.KeyShareExtension); ok {
+			ks.KeyShares = common.Filter(ks.KeyShares, func(share utls.KeyShare) bool {
+				return share.Group != utls.X25519MLKEM768
+			})
+		}
+	}
+	err = uConn.BuildHandshakeState()
+	if err != nil {
+		return nil, err
+	}
 
 	if len(uConfig.NextProtos) > 0 {
 		for _, extension := range uConn.Extensions {
@@ -145,9 +165,13 @@ func (e *RealityClientConfig) ClientHandshake(ctx context.Context, conn net.Conn
 	if err != nil {
 		return nil, err
 	}
-	ecdheKey := uConn.HandshakeState.State13.EcdheKey
+	keyShareKeys := uConn.HandshakeState.State13.KeyShareKeys
+	if keyShareKeys == nil {
+		return nil, E.New("nil KeyShareKeys")
+	}
+	ecdheKey := keyShareKeys.Ecdhe
 	if ecdheKey == nil {
-		return nil, E.New("nil ecdhe_key")
+		return nil, E.New("nil ecdheKey")
 	}
 	authKey, err := ecdheKey.ECDH(publicKey)
 	if err != nil {
@@ -180,19 +204,23 @@ func (e *RealityClientConfig) ClientHandshake(ctx context.Context, conn net.Conn
 	}
 
 	if !verifier.verified {
-		go realityClientFallback(uConn, e.uClient.ServerName(), e.uClient.id)
+		go realityClientFallback(e.ctx, uConn, e.uClient.ServerName(), e.uClient.id)
 		return nil, E.New("reality verification failed")
 	}
 
 	return &realityClientConnWrapper{uConn}, nil
 }
 
-func realityClientFallback(uConn net.Conn, serverName string, fingerprint utls.ClientHelloID) {
+func realityClientFallback(ctx context.Context, uConn net.Conn, serverName string, fingerprint utls.ClientHelloID) {
 	defer uConn.Close()
 	client := &http.Client{
 		Transport: &http2.Transport{
 			DialTLSContext: func(ctx context.Context, network, addr string, config *tls.Config) (net.Conn, error) {
 				return uConn, nil
+			},
+			TLSClientConfig: &tls.Config{
+				Time:    ntp.TimeFuncFromContext(ctx),
+				RootCAs: adapter.RootPoolFromContext(ctx),
 			},
 		},
 	}
@@ -207,12 +235,9 @@ func realityClientFallback(uConn net.Conn, serverName string, fingerprint utls.C
 	response.Body.Close()
 }
 
-func (e *RealityClientConfig) SetSessionIDGenerator(generator func(clientHello []byte, sessionID []byte) error) {
-	e.uClient.config.SessionIDGenerator = generator
-}
-
 func (e *RealityClientConfig) Clone() Config {
 	return &RealityClientConfig{
+		e.ctx,
 		e.uClient.Clone().(*UTLSClientConfig),
 		e.publicKey,
 		e.shortID,

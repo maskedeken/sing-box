@@ -3,17 +3,24 @@ package include
 import (
 	"context"
 
+	"github.com/sagernet/sing-box"
 	"github.com/sagernet/sing-box/adapter"
 	"github.com/sagernet/sing-box/adapter/endpoint"
 	"github.com/sagernet/sing-box/adapter/inbound"
 	"github.com/sagernet/sing-box/adapter/outbound"
+	"github.com/sagernet/sing-box/adapter/service"
 	C "github.com/sagernet/sing-box/constant"
+	"github.com/sagernet/sing-box/dns"
+	"github.com/sagernet/sing-box/dns/transport"
+	"github.com/sagernet/sing-box/dns/transport/fakeip"
+	"github.com/sagernet/sing-box/dns/transport/hosts"
+	"github.com/sagernet/sing-box/dns/transport/local"
 	"github.com/sagernet/sing-box/log"
 	"github.com/sagernet/sing-box/option"
 	"github.com/sagernet/sing-box/protocol/anytls"
 	"github.com/sagernet/sing-box/protocol/block"
 	"github.com/sagernet/sing-box/protocol/direct"
-	"github.com/sagernet/sing-box/protocol/dns"
+	protocolDNS "github.com/sagernet/sing-box/protocol/dns"
 	"github.com/sagernet/sing-box/protocol/group"
 	"github.com/sagernet/sing-box/protocol/http"
 	"github.com/sagernet/sing-box/protocol/mixed"
@@ -28,8 +35,14 @@ import (
 	"github.com/sagernet/sing-box/protocol/tun"
 	"github.com/sagernet/sing-box/protocol/vless"
 	"github.com/sagernet/sing-box/protocol/vmess"
+	"github.com/sagernet/sing-box/service/resolved"
+	"github.com/sagernet/sing-box/service/ssmapi"
 	E "github.com/sagernet/sing/common/exceptions"
 )
+
+func Context(ctx context.Context) context.Context {
+	return box.Context(ctx, InboundRegistry(), OutboundRegistry(), EndpointRegistry(), DNSTransportRegistry(), ServiceRegistry())
+}
 
 func InboundRegistry() *inbound.Registry {
 	registry := inbound.NewRegistry()
@@ -63,7 +76,7 @@ func OutboundRegistry() *outbound.Registry {
 	direct.RegisterOutbound(registry)
 
 	block.RegisterOutbound(registry)
-	dns.RegisterOutbound(registry)
+	protocolDNS.RegisterOutbound(registry)
 
 	group.RegisterSelector(registry)
 	group.RegisterURLTest(registry)
@@ -90,6 +103,37 @@ func EndpointRegistry() *endpoint.Registry {
 	registry := endpoint.NewRegistry()
 
 	registerWireGuardEndpoint(registry)
+	registerTailscaleEndpoint(registry)
+
+	return registry
+}
+
+func DNSTransportRegistry() *dns.TransportRegistry {
+	registry := dns.NewTransportRegistry()
+
+	transport.RegisterTCP(registry)
+	transport.RegisterUDP(registry)
+	transport.RegisterTLS(registry)
+	transport.RegisterHTTPS(registry)
+	hosts.RegisterTransport(registry)
+	local.RegisterTransport(registry)
+	fakeip.RegisterTransport(registry)
+	resolved.RegisterTransport(registry)
+
+	registerQUICTransports(registry)
+	registerDHCPTransport(registry)
+	registerTailscaleTransport(registry)
+
+	return registry
+}
+
+func ServiceRegistry() *service.Registry {
+	registry := service.NewRegistry()
+
+	resolved.RegisterService(registry)
+	ssmapi.RegisterService(registry)
+
+	registerDERPService(registry)
 
 	return registry
 }

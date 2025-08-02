@@ -72,17 +72,60 @@ type DialerOptions struct {
 	ProtectPath         string                            `json:"protect_path,omitempty"`
 	RoutingMark         FwMark                            `json:"routing_mark,omitempty"`
 	ReuseAddr           bool                              `json:"reuse_addr,omitempty"`
+	NetNs               string                            `json:"netns,omitempty"`
 	ConnectTimeout      badoption.Duration                `json:"connect_timeout,omitempty"`
 	TCPFastOpen         bool                              `json:"tcp_fast_open,omitempty"`
 	TCPMultiPath        bool                              `json:"tcp_multi_path,omitempty"`
 	UDPFragment         *bool                             `json:"udp_fragment,omitempty"`
 	UDPFragmentDefault  bool                              `json:"-"`
-	DomainStrategy      DomainStrategy                    `json:"domain_strategy,omitempty"`
+	DomainResolver      *DomainResolveOptions             `json:"domain_resolver,omitempty"`
 	NetworkStrategy     *NetworkStrategy                  `json:"network_strategy,omitempty"`
 	NetworkType         badoption.Listable[InterfaceType] `json:"network_type,omitempty"`
 	FallbackNetworkType badoption.Listable[InterfaceType] `json:"fallback_network_type,omitempty"`
 	FallbackDelay       badoption.Duration                `json:"fallback_delay,omitempty"`
-	IsWireGuardListener bool                              `json:"-"`
+
+	// Deprecated: migrated to domain resolver
+	DomainStrategy DomainStrategy `json:"domain_strategy,omitempty"`
+}
+
+type _DomainResolveOptions struct {
+	Server       string                `json:"server"`
+	Strategy     DomainStrategy        `json:"strategy,omitempty"`
+	DisableCache bool                  `json:"disable_cache,omitempty"`
+	RewriteTTL   *uint32               `json:"rewrite_ttl,omitempty"`
+	ClientSubnet *badoption.Prefixable `json:"client_subnet,omitempty"`
+}
+
+type DomainResolveOptions _DomainResolveOptions
+
+func (o DomainResolveOptions) MarshalJSON() ([]byte, error) {
+	if o.Server == "" {
+		return []byte("{}"), nil
+	} else if o.Strategy == DomainStrategy(C.DomainStrategyAsIS) &&
+		!o.DisableCache &&
+		o.RewriteTTL == nil &&
+		o.ClientSubnet == nil {
+		return json.Marshal(o.Server)
+	} else {
+		return json.Marshal((_DomainResolveOptions)(o))
+	}
+}
+
+func (o *DomainResolveOptions) UnmarshalJSON(bytes []byte) error {
+	var stringValue string
+	err := json.Unmarshal(bytes, &stringValue)
+	if err == nil {
+		o.Server = stringValue
+		return nil
+	}
+	err = json.Unmarshal(bytes, (*_DomainResolveOptions)(o))
+	if err != nil {
+		return err
+	}
+	if o.Server == "" {
+		return E.New("empty domain_resolver.server")
+	}
+	return nil
 }
 
 func (o *DialerOptions) TakeDialerOptions() DialerOptions {
@@ -105,6 +148,10 @@ type ServerOptions struct {
 
 func (o ServerOptions) Build() M.Socksaddr {
 	return M.ParseSocksaddrHostPort(o.Server, o.ServerPort)
+}
+
+func (o ServerOptions) ServerIsDomain() bool {
+	return M.IsDomainName(o.Server)
 }
 
 func (o *ServerOptions) TakeServerOptions() ServerOptions {

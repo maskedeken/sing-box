@@ -1,6 +1,10 @@
 ---
-icon: material/new-box
+icon: material/alert-decagram
 ---
+
+!!! quote "sing-box 1.12.0 中的更改"
+
+    :material-decagram: [servers](#servers)
 
 !!! quote "sing-box 1.11.0 中的更改"
 
@@ -47,8 +51,6 @@ icon: material/new-box
 默认解析域名策略。
 
 可选值: `prefer_ipv4` `prefer_ipv6` `ipv4_only` `ipv6_only`。
-
-如果设置了 `server.strategy`，则不生效。
 
 #### disable_cache
 

@@ -7,7 +7,6 @@ import (
 	"time"
 
 	C "github.com/sagernet/sing-box/constant"
-	"github.com/sagernet/sing-dns"
 	E "github.com/sagernet/sing/common/exceptions"
 	"github.com/sagernet/sing/common/json"
 	"github.com/sagernet/sing/common/json/badjson"
@@ -93,6 +92,7 @@ type _DNSRuleAction struct {
 	RouteOptions        DNSRouteActionOptions        `json:"-"`
 	RouteOptionsOptions DNSRouteOptionsActionOptions `json:"-"`
 	RejectOptions       RejectActionOptions          `json:"-"`
+	PredefinedOptions   DNSRouteActionPredefined     `json:"-"`
 }
 
 type DNSRuleAction _DNSRuleAction
@@ -110,6 +110,8 @@ func (r DNSRuleAction) MarshalJSON() ([]byte, error) {
 		v = r.RouteOptionsOptions
 	case C.RuleActionTypeReject:
 		v = r.RejectOptions
+	case C.RuleActionTypePredefined:
+		v = r.PredefinedOptions
 	default:
 		return nil, E.New("unknown DNS rule action: " + r.Action)
 	}
@@ -130,6 +132,8 @@ func (r *DNSRuleAction) UnmarshalJSONContext(ctx context.Context, data []byte) e
 		v = &r.RouteOptionsOptions
 	case C.RuleActionTypeReject:
 		v = &r.RejectOptions
+	case C.RuleActionTypePredefined:
+		v = &r.PredefinedOptions
 	default:
 		return E.New("unknown DNS rule action: " + r.Action)
 	}
@@ -151,6 +155,10 @@ type RawRouteOptionsActionOptions struct {
 	UDPDisableDomainUnmapping bool               `json:"udp_disable_domain_unmapping,omitempty"`
 	UDPConnect                bool               `json:"udp_connect,omitempty"`
 	UDPTimeout                badoption.Duration `json:"udp_timeout,omitempty"`
+
+	TLSFragment              bool               `json:"tls_fragment,omitempty"`
+	TLSFragmentFallbackDelay badoption.Duration `json:"tls_fragment_fallback_delay,omitempty"`
+	TLSRecordFragment        bool               `json:"tls_record_fragment,omitempty"`
 }
 
 type RouteOptionsActionOptions RawRouteOptionsActionOptions
@@ -163,17 +171,22 @@ func (r *RouteOptionsActionOptions) UnmarshalJSON(data []byte) error {
 	if *r == (RouteOptionsActionOptions{}) {
 		return E.New("empty route option action")
 	}
+	if r.TLSFragment && r.TLSRecordFragment {
+		return E.New("`tls_fragment` and `tls_record_fragment` are mutually exclusive")
+	}
 	return nil
 }
 
 type DNSRouteActionOptions struct {
 	Server       string                `json:"server,omitempty"`
+	Strategy     DomainStrategy        `json:"strategy,omitempty"`
 	DisableCache bool                  `json:"disable_cache,omitempty"`
 	RewriteTTL   *uint32               `json:"rewrite_ttl,omitempty"`
 	ClientSubnet *badoption.Prefixable `json:"client_subnet,omitempty"`
 }
 
 type _DNSRouteOptionsActionOptions struct {
+	Strategy     DomainStrategy        `json:"strategy,omitempty"`
 	DisableCache bool                  `json:"disable_cache,omitempty"`
 	RewriteTTL   *uint32               `json:"rewrite_ttl,omitempty"`
 	ClientSubnet *badoption.Prefixable `json:"client_subnet,omitempty"`
@@ -225,7 +238,7 @@ func (d DirectActionOptions) Descriptions() []string {
 	if d.UDPFragment != nil {
 		descriptions = append(descriptions, "udp_fragment="+fmt.Sprint(*d.UDPFragment))
 	}
-	if d.DomainStrategy != DomainStrategy(dns.DomainStrategyAsIS) {
+	if d.DomainStrategy != DomainStrategy(C.DomainStrategyAsIS) {
 		descriptions = append(descriptions, "domain_strategy="+d.DomainStrategy.String())
 	}
 	if d.FallbackDelay != 0 {
@@ -284,6 +297,16 @@ type RouteActionSniff struct {
 }
 
 type RouteActionResolve struct {
-	Strategy DomainStrategy `json:"strategy,omitempty"`
-	Server   string         `json:"server,omitempty"`
+	Server       string                `json:"server,omitempty"`
+	Strategy     DomainStrategy        `json:"strategy,omitempty"`
+	DisableCache bool                  `json:"disable_cache,omitempty"`
+	RewriteTTL   *uint32               `json:"rewrite_ttl,omitempty"`
+	ClientSubnet *badoption.Prefixable `json:"client_subnet,omitempty"`
+}
+
+type DNSRouteActionPredefined struct {
+	Rcode  *DNSRCode                            `json:"rcode,omitempty"`
+	Answer badoption.Listable[DNSRecordOptions] `json:"answer,omitempty"`
+	Ns     badoption.Listable[DNSRecordOptions] `json:"ns,omitempty"`
+	Extra  badoption.Listable[DNSRecordOptions] `json:"extra,omitempty"`
 }

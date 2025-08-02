@@ -1,6 +1,11 @@
 ---
-icon: material/new-box
+icon: material/alert-decagram
 ---
+
+!!! quote "Changes in sing-box 1.12.0"
+
+    :material-plus: [ip_accept_any](#ip_accept_any)  
+    :material-delete-clock: [outbound](#outbound)
 
 !!! quote "Changes in sing-box 1.11.0"
 
@@ -73,15 +78,6 @@ icon: material/new-box
         "domain_regex": [
           "^stun\\..+"
         ],
-        "geosite": [
-          "cn"
-        ],
-        "source_geoip": [
-          "private"
-        ],
-        "geoip": [
-          "cn"
-        ],
         "source_ip_cidr": [
           "10.0.0.0/24",
           "192.168.0.1"
@@ -92,6 +88,7 @@ icon: material/new-box
           "192.168.0.1"
         ],
         "ip_is_private": false,
+        "ip_accept_any": false,
         "source_port": [
           12345
         ],
@@ -143,8 +140,6 @@ icon: material/new-box
           "geoip-cn",
           "geosite-cn"
         ],
-        // deprecated
-        "rule_set_ipcidr_match_source": false,
         "rule_set_ip_cidr_match_source": false,
         "rule_set_ip_cidr_accept_empty": false,
         "invert": false,
@@ -152,7 +147,20 @@ icon: material/new-box
           "direct"
         ],
         "action": "route",
-        "server": "local"
+        "server": "local",
+
+        // Deprecated
+        
+        "rule_set_ipcidr_match_source": false,
+        "geosite": [
+          "cn"
+        ],
+        "source_geoip": [
+          "private"
+        ],
+        "geoip": [
+          "cn"
+        ]
       },
       {
         "type": "logical",
@@ -395,6 +403,10 @@ Invert match result.
 
 #### outbound
 
+!!! failure "Deprecated in sing-box 1.12.0"
+
+    `outbound` rule items are deprecated and will be removed in sing-box 1.14.0, check [Migration](/migration/#migrate-outbound-dns-rule-items-to-domain-resolver). 
+
 Match outbound.
 
 `any` can be used as a value to match any outbound.
@@ -443,7 +455,9 @@ Only takes effect for address requests (A/AAAA/HTTPS). When the query results do
 
 #### geoip
 
-!!! question "Since sing-box 1.9.0"
+!!! failure "Removed in sing-box 1.12.0"
+
+    GeoIP is deprecated in sing-box 1.8.0 and removed in sing-box 1.12.0, check [Migration](/migration/#migrate-geoip-to-rule-sets).
 
 Match GeoIP with query response.
 
@@ -464,6 +478,12 @@ Match private IP with query response.
 !!! question "Since sing-box 1.10.0"
 
 Make `ip_cidr` rules in rule-sets accept empty query response.
+
+#### ip_accept_any
+
+!!! question "Since sing-box 1.12.0"
+
+Match any IP with query response.
 
 ### Logical Fields
 
