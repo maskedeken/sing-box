@@ -366,6 +366,15 @@ func (r *NetworkManager) AutoRedirectOutputMark() uint32 {
 	return r.autoRedirectOutputMark
 }
 
+func (r *NetworkManager) AutoRedirectOutputMarkFunc() control.Func {
+	return func(network, address string, conn syscall.RawConn) error {
+		if r.autoRedirectOutputMark == 0 {
+			return nil
+		}
+		return control.RoutingMark(r.autoRedirectOutputMark)(network, address, conn)
+	}
+}
+
 func (r *NetworkManager) NetworkMonitor() tun.NetworkUpdateMonitor {
 	return r.networkMonitor
 }
