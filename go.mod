@@ -27,7 +27,7 @@ require (
 	github.com/sagernet/gomobile v0.1.8
 	github.com/sagernet/gvisor v0.0.0-20250325023245-7a9c0f5725fb
 	github.com/sagernet/quic-go v0.52.0-beta.1
-	github.com/sagernet/sing v0.7.6-0.20250815070458-d33ece7a184f
+	github.com/sagernet/sing v0.7.6-0.20250825114712-2aeec120ce28
 	github.com/sagernet/sing-mux v0.3.3
 	github.com/sagernet/sing-quic v0.5.0
 	github.com/sagernet/sing-shadowsocks v0.2.8
@@ -36,7 +36,7 @@ require (
 	github.com/sagernet/sing-tun v0.7.0-beta.1
 	github.com/sagernet/sing-vmess v0.2.7
 	github.com/sagernet/smux v1.5.34-mod.2
-	github.com/sagernet/tailscale v1.80.3-mod.5
+	github.com/sagernet/tailscale v1.80.3-sing-box-1.12-mod.1
 	github.com/sagernet/wireguard-go v0.0.1-beta.7
 	github.com/sagernet/ws v0.0.0-20231204124109-acfe8907c854
 	github.com/spf13/cobra v1.9.1
