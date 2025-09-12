@@ -1,18 +1,13 @@
-package local
+package dhcp
 
 import (
 	"context"
-	"errors"
 	"math/rand"
-	"syscall"
+	"strings"
 	"time"
 
-	"github.com/sagernet/sing-box/adapter"
 	C "github.com/sagernet/sing-box/constant"
 	"github.com/sagernet/sing-box/dns"
-	"github.com/sagernet/sing-box/dns/transport/hosts"
-	"github.com/sagernet/sing-box/log"
-	"github.com/sagernet/sing-box/option"
 	"github.com/sagernet/sing/common/buf"
 	E "github.com/sagernet/sing/common/exceptions"
 	M "github.com/sagernet/sing/common/metadata"
@@ -21,57 +16,10 @@ import (
 	mDNS "github.com/miekg/dns"
 )
 
-var _ adapter.DNSTransport = (*Transport)(nil)
-
-type Transport struct {
-	dns.TransportAdapter
-	ctx    context.Context
-	hosts  *hosts.File
-	dialer N.Dialer
-}
-
-func NewTransport(ctx context.Context, logger log.ContextLogger, tag string, options option.LocalDNSServerOptions) (adapter.DNSTransport, error) {
-	transportDialer, err := dns.NewLocalDialer(ctx, options)
-	if err != nil {
-		return nil, err
-	}
-	return &Transport{
-		TransportAdapter: dns.NewTransportAdapterWithLocalOptions(C.DNSTypeLocal, tag, options),
-		ctx:              ctx,
-		hosts:            hosts.NewFile(hosts.DefaultPath),
-		dialer:           transportDialer,
-	}, nil
-}
-
-func (t *Transport) Start(stage adapter.StartStage) error {
-	return nil
-}
-
-func (t *Transport) Close() error {
-	return nil
-}
-
-func (t *Transport) Exchange(ctx context.Context, message *mDNS.Msg) (*mDNS.Msg, error) {
-	question := message.Question[0]
-	domain := dns.FqdnToDomain(question.Name)
-	if question.Qtype == mDNS.TypeA || question.Qtype == mDNS.TypeAAAA {
-		addresses := t.hosts.Lookup(domain)
-		if len(addresses) > 0 {
-			return dns.FixedResponse(message.Id, question, addresses, C.DefaultDNSTTL), nil
-		}
-	}
-	systemConfig := getSystemDNSConfig(t.ctx)
-	if systemConfig.singleRequest || !(message.Question[0].Qtype == mDNS.TypeA || message.Question[0].Qtype == mDNS.TypeAAAA) {
-		return t.exchangeSingleRequest(ctx, systemConfig, message, domain)
-	} else {
-		return t.exchangeParallel(ctx, systemConfig, message, domain)
-	}
-}
-
-func (t *Transport) exchangeSingleRequest(ctx context.Context, systemConfig *dnsConfig, message *mDNS.Msg, domain string) (*mDNS.Msg, error) {
+func (t *Transport) exchangeSingleRequest(ctx context.Context, servers []M.Socksaddr, message *mDNS.Msg, domain string) (*mDNS.Msg, error) {
 	var lastErr error
-	for _, fqdn := range systemConfig.nameList(domain) {
-		response, err := t.tryOneName(ctx, systemConfig, fqdn, message)
+	for _, fqdn := range t.nameList(domain) {
+		response, err := t.tryOneName(ctx, servers, fqdn, message)
 		if err != nil {
 			lastErr = err
 			continue
@@ -81,7 +29,7 @@ func (t *Transport) exchangeSingleRequest(ctx context.Context, systemConfig *dns
 	return nil, lastErr
 }
 
-func (t *Transport) exchangeParallel(ctx context.Context, systemConfig *dnsConfig, message *mDNS.Msg, domain string) (*mDNS.Msg, error) {
+func (t *Transport) exchangeParallel(ctx context.Context, servers []M.Socksaddr, message *mDNS.Msg, domain string) (*mDNS.Msg, error) {
 	returned := make(chan struct{})
 	defer close(returned)
 	type queryResult struct {
@@ -90,7 +38,7 @@ func (t *Transport) exchangeParallel(ctx context.Context, systemConfig *dnsConfi
 	}
 	results := make(chan queryResult)
 	startRacer := func(ctx context.Context, fqdn string) {
-		response, err := t.tryOneName(ctx, systemConfig, fqdn, message)
+		response, err := t.tryOneName(ctx, servers, fqdn, message)
 		if err == nil {
 			if response.Rcode != mDNS.RcodeSuccess {
 				err = dns.RcodeError(response.Rcode)
@@ -106,7 +54,7 @@ func (t *Transport) exchangeParallel(ctx context.Context, systemConfig *dnsConfi
 	queryCtx, queryCancel := context.WithCancel(ctx)
 	defer queryCancel()
 	var nameCount int
-	for _, fqdn := range systemConfig.nameList(domain) {
+	for _, fqdn := range t.nameList(domain) {
 		nameCount++
 		go startRacer(queryCtx, fqdn)
 	}
@@ -127,16 +75,15 @@ func (t *Transport) exchangeParallel(ctx context.Context, systemConfig *dnsConfi
 	}
 }
 
-func (t *Transport) tryOneName(ctx context.Context, config *dnsConfig, fqdn string, message *mDNS.Msg) (*mDNS.Msg, error) {
-	serverOffset := config.serverOffset()
-	sLen := uint32(len(config.servers))
+func (t *Transport) tryOneName(ctx context.Context, servers []M.Socksaddr, fqdn string, message *mDNS.Msg) (*mDNS.Msg, error) {
+	sLen := len(servers)
 	var lastErr error
-	for i := 0; i < config.attempts; i++ {
-		for j := uint32(0); j < sLen; j++ {
-			server := config.servers[(serverOffset+j)%sLen]
+	for i := 0; i < t.attempts; i++ {
+		for j := 0; j < sLen; j++ {
+			server := servers[j]
 			question := message.Question[0]
 			question.Name = fqdn
-			response, err := t.exchangeOne(ctx, M.ParseSocksaddr(server), question, config.timeout, config.useTCP, config.trustAD)
+			response, err := t.exchangeOne(ctx, server, question, C.DNSTimeout, false, true)
 			if err != nil {
 				lastErr = err
 				continue
@@ -186,9 +133,6 @@ func (t *Transport) exchangeOne(ctx context.Context, server M.Socksaddr, questio
 		}
 		_, err = conn.Write(rawMessage)
 		if err != nil {
-			if errors.Is(err, syscall.EMSGSIZE) && network == N.NetworkUDP {
-				continue
-			}
 			return nil, E.Cause(err, "write request")
 		}
 		n, err := conn.Read(buffer)
@@ -206,4 +150,48 @@ func (t *Transport) exchangeOne(ctx context.Context, server M.Socksaddr, questio
 		return &response, nil
 	}
 	panic("unexpected")
+}
+
+func (t *Transport) nameList(name string) []string {
+	l := len(name)
+	rooted := l > 0 && name[l-1] == '.'
+	if l > 254 || l == 254 && !rooted {
+		return nil
+	}
+
+	if rooted {
+		if avoidDNS(name) {
+			return nil
+		}
+		return []string{name}
+	}
+
+	hasNdots := strings.Count(name, ".") >= t.ndots
+	name += "."
+	// l++
+
+	names := make([]string, 0, 1+len(t.search))
+	if hasNdots && !avoidDNS(name) {
+		names = append(names, name)
+	}
+	for _, suffix := range t.search {
+		fqdn := name + suffix
+		if !avoidDNS(fqdn) && len(fqdn) <= 254 {
+			names = append(names, fqdn)
+		}
+	}
+	if !hasNdots && !avoidDNS(name) {
+		names = append(names, name)
+	}
+	return names
+}
+
+func avoidDNS(name string) bool {
+	if name == "" {
+		return true
+	}
+	if name[len(name)-1] == '.' {
+		name = name[:len(name)-1]
+	}
+	return strings.HasSuffix(name, ".onion")
 }
