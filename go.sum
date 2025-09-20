@@ -118,8 +118,8 @@ github.com/maskedeken/sing-shadowsocks2 v0.0.0-20250607150815-72e8d7f3658d h1:xa
 github.com/maskedeken/sing-shadowsocks2 v0.0.0-20250607150815-72e8d7f3658d/go.mod h1:RnXS0lExcDAovvDeniJ4IKa2IuChrdipolPYWBv9hWQ=
 github.com/maskedeken/sing-shadowtls v0.0.0-20250731065542-0eef8b1e5bb7 h1:PA25VS7PjovxbSOLIfnGpmZ+odCclDkbtdVs+OXyJEc=
 github.com/maskedeken/sing-shadowtls v0.0.0-20250731065542-0eef8b1e5bb7/go.mod h1:sWqKnGlMipCHaGsw1sTTlimyUpgzP4WP3pjhCsYt9oA=
-github.com/maskedeken/sing-vmess v0.0.0-20250826124033-9c06d3afecd3 h1:DtmSDCgEpSvp64B7vsMQFz2nHy4ZFUxYsaY3DWDZ3PQ=
-github.com/maskedeken/sing-vmess v0.0.0-20250826124033-9c06d3afecd3/go.mod h1:5aYoOtYksAyS0NXDm0qKeTYW1yoE1bJVcv+XLcVoyJs=
+github.com/maskedeken/sing-vmess v0.0.0-20250920052010-2d5aab253026 h1:X84FTFEmZXbuVGsAL4q2deLEhF8Fdmz79LH6oxS471I=
+github.com/maskedeken/sing-vmess v0.0.0-20250920052010-2d5aab253026/go.mod h1:5aYoOtYksAyS0NXDm0qKeTYW1yoE1bJVcv+XLcVoyJs=
 github.com/mdlayher/genetlink v1.3.2 h1:KdrNKe+CTu+IbZnm/GVUMXSqBBLqcGpRDa0xkQy56gw=
 github.com/mdlayher/genetlink v1.3.2/go.mod h1:tcC3pkCrPUGIKKsCsp0B3AdaaKuHtaxoJRz3cc+528o=
 github.com/mdlayher/netlink v1.7.3-0.20250113171957-fbb4dce95f42 h1:A1Cq6Ysb0GM0tpKMbdCXCIfBclan4oHk1Jb+Hrejirg=

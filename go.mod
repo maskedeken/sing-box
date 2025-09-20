@@ -60,7 +60,7 @@ replace github.com/sagernet/sing-shadowtls => github.com/maskedeken/sing-shadowt
 
 replace github.com/sagernet/sing-shadowsocks2 => github.com/maskedeken/sing-shadowsocks2 v0.0.0-20250607150815-72e8d7f3658d
 
-replace github.com/sagernet/sing-vmess => github.com/maskedeken/sing-vmess v0.0.0-20250826124033-9c06d3afecd3
+replace github.com/sagernet/sing-vmess => github.com/maskedeken/sing-vmess v0.0.0-20250920052010-2d5aab253026
 
 require (
 	filippo.io/edwards25519 v1.1.0 // indirect
