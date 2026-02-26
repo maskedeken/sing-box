@@ -1,0 +1,1 @@
+- https://github.com/SagerNet/sing-box/releases/tag/v1.12.22
