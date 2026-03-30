@@ -294,7 +294,9 @@ func (t *Inbound) Start(stage adapter.StartStage) error {
 	switch stage {
 	case adapter.StartStateStart:
 		if C.IsAndroid && t.platformInterface == nil {
-			t.tunOptions.BuildAndroidRules(t.networkManager.PackageManager())
+			if packageManager := t.networkManager.PackageManager(); packageManager != nil {
+				t.tunOptions.BuildAndroidRules(packageManager)
+			}
 		}
 		if t.tunOptions.Name == "" {
 			t.tunOptions.Name = tun.CalculateInterfaceName("")

@@ -34,13 +34,15 @@ func (s *androidSearcher) FindProcessInfo(ctx context.Context, network string, s
 	}
 	appID := uid % 100000
 	var packageNames []string
-	if sharedPackage, loaded := s.packageManager.SharedPackageByID(appID); loaded {
-		packageNames = append(packageNames, sharedPackage)
+	if s.packageManager != nil {
+		if sharedPackage, loaded := s.packageManager.SharedPackageByID(appID); loaded {
+			packageNames = append(packageNames, sharedPackage)
+		}
+		if packages, loaded := s.packageManager.PackagesByID(appID); loaded {
+			packageNames = append(packageNames, packages...)
+		}
+		packageNames = common.Uniq(packageNames)
 	}
-	if packages, loaded := s.packageManager.PackagesByID(appID); loaded {
-		packageNames = append(packageNames, packages...)
-	}
-	packageNames = common.Uniq(packageNames)
 	return &adapter.ConnectionOwner{
 		UserId:              int32(uid),
 		AndroidPackageNames: packageNames,
