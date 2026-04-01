@@ -42,6 +42,8 @@ func applyDebugListenOption(options option.DebugOptions) {
 			memObject.Put("stack", byteformats.FormatMemoryBytes(memStats.StackInuse))
 			memObject.Put("idle", byteformats.FormatMemoryBytes(memStats.HeapIdle-memStats.HeapReleased))
 			memObject.Put("goroutines", runtime.NumGoroutine())
+			memObject.Put("numGC", memStats.NumGC)
+			memObject.Put("totalAlloc", memStats.TotalAlloc)
 			memObject.Put("rss", rusageMaxRSS())
 
 			encoder := json.NewEncoder(writer)

@@ -117,6 +117,7 @@ func NewServer(ctx context.Context, logFactory log.ObservableFactory, options op
 		r.Get("/", hello(options.ExternalUI != ""))
 		r.Get("/logs", getLogs(s.ctx, logFactory))
 		r.Get("/traffic", traffic(s.ctx, trafficManager))
+		r.Get("/flow", flow(trafficManager))
 		r.Get("/version", version)
 		r.Mount("/configs", configRouter(s, logFactory))
 		r.Mount("/proxies", proxyRouter(s, s.router))
@@ -352,6 +353,19 @@ func traffic(ctx context.Context, trafficManager *trafficontrol.Manager) func(w 
 			uploadTotal = uploadTotalNew
 			downloadTotal = downloadTotalNew
 		}
+	}
+}
+
+func flow(trafficManager *trafficontrol.Manager) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+
+		up, down := trafficManager.Total()
+		json.NewEncoder(w).Encode(Traffic{
+			Up:   up,
+			Down: down,
+		})
 	}
 }
 
