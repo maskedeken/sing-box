@@ -133,7 +133,7 @@ func (h *Inbound) Close() error {
 	)
 }
 
-func (h *Inbound) NewConnectionEx(ctx context.Context, conn net.Conn, metadata adapter.InboundContext, onClose N.CloseHandlerFunc) {
+func (h *Inbound) NewConnection(ctx context.Context, conn net.Conn, metadata adapter.InboundContext, onClose N.CloseHandlerFunc) {
 	err := h.newConnection(ctx, conn, metadata, onClose)
 	N.CloseOnHandshakeFailure(conn, onClose, err)
 	if err != nil {
@@ -160,9 +160,9 @@ func (h *Inbound) newConnection(ctx context.Context, conn net.Conn, metadata ada
 	}
 	switch headerBytes[0] {
 	case socks4.Version, socks5.Version:
-		return socks.HandleConnectionEx(ctx, conn, reader, h.authenticator, adapter.NewUpstreamHandlerEx(metadata, h.newUserConnection, h.streamUserPacketConnection), h.listener, h.udpTimeout, metadata.Source, onClose)
+		return socks.HandleConnectionEx(ctx, conn, reader, h.authenticator, adapter.NewUpstreamHandler(metadata, h.newUserConnection, h.streamUserPacketConnection), h.listener, h.udpTimeout, metadata.Source, onClose)
 	default:
-		return http.HandleConnectionEx(ctx, conn, reader, h.authenticator, adapter.NewUpstreamHandlerEx(metadata, h.newUserConnection, h.streamUserPacketConnection), metadata.Source, onClose)
+		return http.HandleConnectionEx(ctx, conn, reader, h.authenticator, adapter.NewUpstreamHandler(metadata, h.newUserConnection, h.streamUserPacketConnection), metadata.Source, onClose)
 	}
 }
 
@@ -236,7 +236,7 @@ func encodeUDPPacket(destination M.Socksaddr, payload []byte) (*buf.Buffer, erro
 	return buffer, nil
 }
 
-func (h *Inbound) NewPacketEx(buffer *buf.Buffer, source M.Socksaddr) {
+func (h *Inbound) NewPacket(buffer *buf.Buffer, source M.Socksaddr) {
 	// Check UDP filter if authentication is required
 	if h.udpFilter != nil && !h.udpFilter.checkSocksaddr(source) {
 		h.logger.DebugContext(h.ctx, "unauthorized UDP access from ", source)
