@@ -74,7 +74,7 @@ func (r *Router) routeConnection(ctx context.Context, conn net.Conn, metadata ad
 		metadata.LastInbound = metadata.Inbound
 		metadata.Inbound = metadata.InboundDetour
 		metadata.InboundDetour = ""
-		injectable.NewConnection(ctx, conn, metadata, onClose)
+		injectable.NewConnectionEx(ctx, conn, metadata, onClose)
 		return nil
 	}
 	metadata.Network = N.NetworkTCP
@@ -87,10 +87,6 @@ func (r *Router) routeConnection(ctx context.Context, conn net.Conn, metadata ad
 		return E.New("global UoT not supported since sing-box v1.7.0.")
 	case uot.LegacyMagicAddress:
 		return E.New("global UoT (legacy) not supported since sing-box v1.7.0.")
-	}
-	if metadata.InboundType == C.TypeTun && metadata.Protocol == C.ProtocolDNS {
-		N.CloseOnHandshakeFailure(conn, onClose, r.hijackDNSStream(ctx, conn, metadata))
-		return nil
 	}
 	if deadline.NeedAdditionalReadDeadline(conn) {
 		conn = deadline.NewConn(conn)
@@ -156,8 +152,8 @@ func (r *Router) routeConnection(ctx context.Context, conn net.Conn, metadata ad
 	for _, tracker := range r.trackers {
 		conn = tracker.RoutedConnection(ctx, conn, metadata, selectedRule, selectedOutbound)
 	}
-	if outboundHandler, isHandler := selectedOutbound.(adapter.ConnectionHandler); isHandler {
-		outboundHandler.NewConnection(ctx, conn, metadata, onClose)
+	if outboundHandler, isHandler := selectedOutbound.(adapter.ConnectionHandlerEx); isHandler {
+		outboundHandler.NewConnectionEx(ctx, conn, metadata, onClose)
 	} else {
 		r.connection.NewConnection(ctx, selectedOutbound, conn, metadata, onClose)
 	}
@@ -213,7 +209,7 @@ func (r *Router) routePacketConnection(ctx context.Context, conn N.PacketConn, m
 		metadata.LastInbound = metadata.Inbound
 		metadata.Inbound = metadata.InboundDetour
 		metadata.InboundDetour = ""
-		injectable.NewPacketConnection(ctx, conn, metadata, onClose)
+		injectable.NewPacketConnectionEx(ctx, conn, metadata, onClose)
 		return nil
 	}
 	// TODO: move to UoT
@@ -223,9 +219,7 @@ func (r *Router) routePacketConnection(ctx context.Context, conn N.PacketConn, m
 	/*if deadline.NeedAdditionalReadDeadline(conn) {
 		conn = deadline.NewPacketConn(bufio.NewNetPacketConn(conn))
 	}*/
-	if metadata.InboundType == C.TypeTun && metadata.Protocol == C.ProtocolDNS {
-		return r.hijackDNSPacket(ctx, conn, nil, metadata, onClose)
-	}
+
 	selectedRule, _, _, packetBuffers, err := r.matchRule(ctx, &metadata, false, false, nil, conn)
 	if err != nil {
 		return err
@@ -287,8 +281,8 @@ func (r *Router) routePacketConnection(ctx context.Context, conn N.PacketConn, m
 	if metadata.FakeIP {
 		conn = bufio.NewNATPacketConn(bufio.NewNetPacketConn(conn), metadata.OriginDestination, metadata.Destination)
 	}
-	if outboundHandler, isHandler := selectedOutbound.(adapter.PacketConnectionHandler); isHandler {
-		outboundHandler.NewPacketConnection(ctx, conn, metadata, onClose)
+	if outboundHandler, isHandler := selectedOutbound.(adapter.PacketConnectionHandlerEx); isHandler {
+		outboundHandler.NewPacketConnectionEx(ctx, conn, metadata, onClose)
 	} else {
 		r.connection.NewPacketConnection(ctx, selectedOutbound, conn, metadata, onClose)
 	}
@@ -414,23 +408,6 @@ func (r *Router) matchRule(
 	buffers []*buf.Buffer, packetBuffers []*N.PacketBuffer, fatalErr error,
 ) {
 	r.searchProcessInfo(ctx, metadata)
-	if r.neighborResolver != nil && metadata.SourceMACAddress == nil && metadata.Source.Addr.IsValid() {
-		mac, macFound := r.neighborResolver.LookupMAC(metadata.Source.Addr)
-		if macFound {
-			metadata.SourceMACAddress = mac
-		}
-		hostname, hostnameFound := r.neighborResolver.LookupHostname(metadata.Source.Addr)
-		if hostnameFound {
-			metadata.SourceHostname = hostname
-			if macFound {
-				r.logger.InfoContext(ctx, "found neighbor: ", mac, ", hostname: ", hostname)
-			} else {
-				r.logger.InfoContext(ctx, "found neighbor hostname: ", hostname)
-			}
-		} else if macFound {
-			r.logger.InfoContext(ctx, "found neighbor: ", mac)
-		}
-	}
 	if metadata.Destination.Addr.IsValid() && r.dnsTransport.FakeIP() != nil && r.dnsTransport.FakeIP().Store().Contains(metadata.Destination.Addr) {
 		domain, loaded := r.dnsTransport.FakeIP().Store().Lookup(metadata.Destination.Addr)
 		if !loaded {
@@ -489,10 +466,6 @@ match:
 			routeOptions = &action.RuleActionRouteOptions
 		case *R.RuleActionRouteOptions:
 			routeOptions = action
-		case *R.RuleActionBypass:
-			if action.Outbound != "" {
-				routeOptions = &action.RuleActionRouteOptions
-			}
 		}
 		if routeOptions != nil {
 			// TODO: add nat
@@ -541,10 +514,6 @@ match:
 			}
 			if routeOptions.TLSRecordFragment {
 				metadata.TLSRecordFragment = true
-			}
-			if routeOptions.TLSSpoof != "" {
-				metadata.TLSSpoof = routeOptions.TLSSpoof
-				metadata.TLSSpoofMethod = routeOptions.TLSSpoofMethod
 			}
 		}
 		switch action := currentRule.Action().(type) {
@@ -731,7 +700,7 @@ func (r *Router) actionSniff(
 			}
 			if err != nil {
 				sniffBuffer.Release()
-				if !errors.Is(err, context.DeadlineExceeded) {
+				if !E.IsTimeout(err) {
 					fatalErr = err
 					return
 				}
@@ -800,13 +769,11 @@ func (r *Router) actionResolve(ctx context.Context, metadata *adapter.InboundCon
 			}
 		}
 		addresses, err := r.dns.Lookup(adapter.WithContext(ctx, metadata), metadata.Destination.Fqdn, adapter.DNSQueryOptions{
-			Transport:              transport,
-			Strategy:               action.Strategy,
-			DisableCache:           action.DisableCache,
-			DisableOptimisticCache: action.DisableOptimisticCache,
-			RewriteTTL:             action.RewriteTTL,
-			Timeout:                action.Timeout,
-			ClientSubnet:           action.ClientSubnet,
+			Transport:    transport,
+			Strategy:     action.Strategy,
+			DisableCache: action.DisableCache,
+			RewriteTTL:   action.RewriteTTL,
+			ClientSubnet: action.ClientSubnet,
 		})
 		if err != nil {
 			return err

@@ -18,6 +18,7 @@ linters:
   default: none
   enable:
     - ineffassign
+    - paralleltest
     - staticcheck
     - unused
     - modernize

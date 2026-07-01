@@ -22,7 +22,7 @@ func NewV2RayLegacyRouter(router adapter.ConnectionRouterEx, logger logger.Conte
 func (r *V2RayLegacyRouter) RouteConnection(ctx context.Context, conn net.Conn, metadata adapter.InboundContext) error {
 	if metadata.Destination.Fqdn == vmess.MuxDestination.Fqdn {
 		r.logger.InfoContext(ctx, "inbound legacy multiplex connection")
-		return vmess.HandleMuxConnection(ctx, conn, metadata.Source, adapter.NewRouteHandler(metadata, r.router))
+		return vmess.HandleMuxConnection(ctx, conn, metadata.Source, adapter.NewRouteHandlerEx(metadata, r.router))
 	}
 	return r.router.RouteConnection(ctx, conn, metadata)
 }
@@ -34,7 +34,7 @@ func (r *V2RayLegacyRouter) RoutePacketConnection(ctx context.Context, conn N.Pa
 func (r *V2RayLegacyRouter) RouteConnectionEx(ctx context.Context, conn net.Conn, metadata adapter.InboundContext, onClose N.CloseHandlerFunc) {
 	if metadata.Destination.Fqdn == vmess.MuxDestination.Fqdn {
 		r.logger.InfoContext(ctx, "inbound legacy multiplex connection")
-		vmess.HandleMuxConnection(ctx, conn, metadata.Source, adapter.NewRouteHandler(metadata, r.router))
+		vmess.HandleMuxConnection(ctx, conn, metadata.Source, adapter.NewRouteHandlerEx(metadata, r.router))
 		return
 	}
 

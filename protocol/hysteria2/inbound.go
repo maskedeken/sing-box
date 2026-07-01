@@ -5,7 +5,6 @@ import (
 	"net"
 	"net/http"
 	"net/http/httputil"
-	"net/netip"
 	"net/url"
 	"time"
 
@@ -16,16 +15,13 @@ import (
 	C "github.com/sagernet/sing-box/constant"
 	"github.com/sagernet/sing-box/log"
 	"github.com/sagernet/sing-box/option"
-	qtls "github.com/sagernet/sing-quic"
 	"github.com/sagernet/sing-quic/hysteria"
 	"github.com/sagernet/sing-quic/hysteria2"
-	"github.com/sagernet/sing-quic/hysteria2/realm"
 	"github.com/sagernet/sing/common"
 	"github.com/sagernet/sing/common/auth"
 	E "github.com/sagernet/sing/common/exceptions"
 	M "github.com/sagernet/sing/common/metadata"
 	N "github.com/sagernet/sing/common/network"
-	"github.com/sagernet/sing/service"
 )
 
 func RegisterInbound(registry *inbound.Registry) {
@@ -52,8 +48,6 @@ func NewInbound(ctx context.Context, router adapter.Router, logger log.ContextLo
 		return nil, err
 	}
 	var salamanderPassword string
-	var geckoPassword string
-	var geckoMinPacketSize, geckoMaxPacketSize int
 	if options.Obfs != nil {
 		if options.Obfs.Password == "" {
 			return nil, E.New("missing obfs password")
@@ -61,10 +55,6 @@ func NewInbound(ctx context.Context, router adapter.Router, logger log.ContextLo
 		switch options.Obfs.Type {
 		case hysteria2.ObfsTypeSalamander:
 			salamanderPassword = options.Obfs.Password
-		case hysteria2.ObfsTypeGecko:
-			geckoPassword = options.Obfs.Password
-			geckoMinPacketSize = options.Obfs.GeckoOptions.MinPacketSize
-			geckoMaxPacketSize = options.Obfs.GeckoOptions.MaxPacketSize
 		default:
 			return nil, E.New("unknown obfs type: ", options.Obfs.Type)
 		}
@@ -123,62 +113,18 @@ func NewInbound(ctx context.Context, router adapter.Router, logger log.ContextLo
 	} else {
 		udpTimeout = C.UDPTimeout
 	}
-	var realmOptions *realm.Options
-	if options.Realm != nil {
-		queryOptions, err := adapter.DNSQueryOptionsFrom(ctx, options.Realm.STUNDomainResolver)
-		if err != nil {
-			return nil, err
-		}
-		httpClientTransport, err := service.FromContext[adapter.HTTPClientManager](ctx).ResolveTransport(ctx, logger, common.PtrValueOrDefault(options.Realm.HTTPClient))
-		if err != nil {
-			return nil, E.Cause(err, "create realm http client")
-		}
-		dnsRouter := service.FromContext[adapter.DNSRouter](ctx)
-		realmOptions = &realm.Options{
-			ServerURL:   options.Realm.ServerURL,
-			Token:       options.Realm.Token,
-			RealmID:     options.Realm.RealmID,
-			STUNServers: options.Realm.STUNServers,
-			HTTPClient:  &http.Client{Transport: httpClientTransport},
-			Resolver: func(ctx context.Context, host string, ipv4, ipv6 bool) ([]netip.Addr, error) {
-				dnsOptions := queryOptions
-				switch {
-				case ipv4 && !ipv6:
-					dnsOptions.Strategy = C.DomainStrategyIPv4Only
-				case !ipv4 && ipv6:
-					dnsOptions.Strategy = C.DomainStrategyIPv6Only
-				}
-				return dnsRouter.Lookup(ctx, host, dnsOptions)
-			},
-			Logger: logger,
-		}
-	}
-	hysteriaService, err := hysteria2.NewService[int](hysteria2.ServiceOptions{
-		Context:            ctx,
-		Logger:             logger,
-		BrutalDebug:        options.BrutalDebug,
-		SendBPS:            uint64(options.UpMbps * hysteria.MbpsToBps),
-		ReceiveBPS:         uint64(options.DownMbps * hysteria.MbpsToBps),
-		SalamanderPassword: salamanderPassword,
-		GeckoPassword:      geckoPassword,
-		GeckoMinPacketSize: geckoMinPacketSize,
-		GeckoMaxPacketSize: geckoMaxPacketSize,
-		TLSConfig:          tlsConfig,
-		QUICOptions: qtls.QUICOptions{
-			IdleTimeout:             options.IdleTimeout.Build(),
-			KeepAlivePeriod:         options.KeepAlivePeriod.Build(),
-			StreamReceiveWindow:     options.StreamReceiveWindow.Value(),
-			ConnectionReceiveWindow: options.ConnectionReceiveWindow.Value(),
-			MaxConcurrentStreams:    options.MaxConcurrentStreams,
-			InitialPacketSize:       options.InitialPacketSize,
-			DisablePathMTUDiscovery: options.DisablePathMTUDiscovery,
-		},
+	service, err := hysteria2.NewService[int](hysteria2.ServiceOptions{
+		Context:               ctx,
+		Logger:                logger,
+		BrutalDebug:           options.BrutalDebug,
+		SendBPS:               uint64(options.UpMbps * hysteria.MbpsToBps),
+		ReceiveBPS:            uint64(options.DownMbps * hysteria.MbpsToBps),
+		SalamanderPassword:    salamanderPassword,
+		TLSConfig:             tlsConfig,
 		IgnoreClientBandwidth: options.IgnoreClientBandwidth,
 		UDPTimeout:            udpTimeout,
 		Handler:               inbound,
 		MasqueradeHandler:     masqueradeHandler,
-		BBRProfile:            options.BBRProfile,
-		RealmOptions:          realmOptions,
 	})
 	if err != nil {
 		return nil, err
@@ -191,8 +137,8 @@ func NewInbound(ctx context.Context, router adapter.Router, logger log.ContextLo
 		userNameList = append(userNameList, user.Name)
 		userPasswordList = append(userPasswordList, user.Password)
 	}
-	hysteriaService.UpdateUsers(userList, userPasswordList)
-	inbound.service = hysteriaService
+	service.UpdateUsers(userList, userPasswordList)
+	inbound.service = service
 	inbound.userNameList = userNameList
 	return inbound, nil
 }
@@ -256,10 +202,6 @@ func (h *Inbound) Start(stage adapter.StartStage) error {
 		return err
 	}
 	return h.service.Start(packetConn)
-}
-
-func (h *Inbound) InterfaceUpdated() {
-	h.service.Reset()
 }
 
 func (h *Inbound) Close() error {

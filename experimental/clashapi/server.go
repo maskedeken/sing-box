@@ -21,7 +21,6 @@ import (
 	"github.com/sagernet/sing-box/log"
 	"github.com/sagernet/sing-box/option"
 	"github.com/sagernet/sing/common"
-	"github.com/sagernet/sing/common/cleanup"
 	E "github.com/sagernet/sing/common/exceptions"
 	"github.com/sagernet/sing/common/json"
 	N "github.com/sagernet/sing/common/network"
@@ -43,7 +42,6 @@ var _ adapter.ClashServer = (*Server)(nil)
 
 type Server struct {
 	ctx            context.Context
-	network        adapter.NetworkManager
 	router         adapter.Router
 	dnsRouter      adapter.DNSRouter
 	outbound       adapter.OutboundManager
@@ -53,7 +51,6 @@ type Server struct {
 	trafficManager *trafficontrol.Manager
 	urlTestHistory adapter.URLTestHistoryStorage
 	logDebug       bool
-	cleaner        *cleanup.Cleaner
 
 	mode           string
 	modeList       []string
@@ -70,7 +67,6 @@ func NewServer(ctx context.Context, logFactory log.ObservableFactory, options op
 	chiRouter := chi.NewRouter()
 	s := &Server{
 		ctx:       ctx,
-		network:   service.FromContext[adapter.NetworkManager](ctx),
 		router:    service.FromContext[adapter.Router](ctx),
 		dnsRouter: service.FromContext[adapter.DNSRouter](ctx),
 		outbound:  service.FromContext[adapter.OutboundManager](ctx),
@@ -86,7 +82,6 @@ func NewServer(ctx context.Context, logFactory log.ObservableFactory, options op
 		externalController:       options.ExternalController != "",
 		externalUIDownloadURL:    options.ExternalUIDownloadURL,
 		externalUIDownloadDetour: options.ExternalUIDownloadDetour,
-		cleaner:                  cleanup.Add(trafficManager.Clear),
 	}
 	s.urlTestHistory = service.FromContext[adapter.URLTestHistoryStorage](ctx)
 	if s.urlTestHistory == nil {
@@ -126,7 +121,7 @@ func NewServer(ctx context.Context, logFactory log.ObservableFactory, options op
 		r.Mount("/configs", configRouter(s, logFactory))
 		r.Mount("/proxies", proxyRouter(s, s.router))
 		r.Mount("/rules", ruleRouter(s.router))
-		r.Mount("/connections", connectionRouter(s.ctx, s.network, trafficManager))
+		r.Mount("/connections", connectionRouter(s.ctx, s.router, trafficManager))
 		r.Mount("/providers/proxies", proxyProviderRouter())
 		r.Mount("/providers/rules", ruleProviderRouter())
 		r.Mount("/script", scriptRouter())
@@ -198,7 +193,6 @@ func (s *Server) Close() error {
 		common.PtrOrNil(s.httpServer),
 		s.trafficManager,
 		s.urlTestHistory,
-		common.PtrOrNil(s.cleaner),
 	)
 }
 

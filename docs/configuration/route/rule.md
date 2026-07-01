@@ -2,12 +2,6 @@
 icon: material/new-box
 ---
 
-!!! quote "Changes in sing-box 1.14.0"
-
-    :material-plus: [source_mac_address](#source_mac_address)  
-    :material-plus: [source_hostname](#source_hostname)  
-    :material-plus: [package_name_regex](#package_name_regex)
-
 !!! quote "Changes in sing-box 1.13.0"
 
     :material-plus: [interface_address](#interface_address)  
@@ -130,9 +124,6 @@ icon: material/new-box
         "package_name": [
           "com.termux"
         ],
-        "package_name_regex": [
-          "^com\\.termux.*"
-        ],
         "user": [
           "sekai"
         ],
@@ -167,12 +158,6 @@ icon: material/new-box
         "preferred_by": [
           "tailscale",
           "wireguard"
-        ],
-        "source_mac_address": [
-          "00:11:22:33:44:55"
-        ],
-        "source_hostname": [
-          "my-device"
         ],
         "rule_set": [
           "geoip-cn",
@@ -358,12 +343,6 @@ Match process path using regular expression.
 
 Match android package name.
 
-#### package_name_regex
-
-!!! question "Since sing-box 1.14.0"
-
-Match android package name using regular expression.
-
 #### user
 
 !!! quote ""
@@ -469,26 +448,6 @@ Match specified outbounds' preferred routes.
 |-------------|-----------------------------------------------|
 | `tailscale` | Match MagicDNS domains and peers' allowed IPs |
 | `wireguard` | Match peers's allowed IPs                     |
-
-#### source_mac_address
-
-!!! question "Since sing-box 1.14.0"
-
-!!! quote ""
-
-    Only supported on Linux, macOS, or in graphical clients on Android and macOS. See [Neighbor Resolution](/configuration/shared/neighbor/) for setup.
-
-Match source device MAC address.
-
-#### source_hostname
-
-!!! question "Since sing-box 1.14.0"
-
-!!! quote ""
-
-    Only supported on Linux, macOS, or in graphical clients on Android and macOS. See [Neighbor Resolution](/configuration/shared/neighbor/) for setup.
-
-Match source device hostname from DHCP leases.
 
 #### rule_set
 
