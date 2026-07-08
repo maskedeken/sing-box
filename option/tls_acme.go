@@ -20,7 +20,6 @@ type InboundACMEOptions struct {
 	AlternativeTLSPort      uint16                      `json:"alternative_tls_port,omitempty"`
 	ExternalAccount         *ACMEExternalAccountOptions `json:"external_account,omitempty"`
 	DNS01Challenge          *ACMEDNS01ChallengeOptions  `json:"dns01_challenge,omitempty"`
-	Profile                 string                      `json:"profile,omitempty"`
 }
 
 type ACMEExternalAccountOptions struct {

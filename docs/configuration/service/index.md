@@ -21,14 +21,13 @@ icon: material/new-box
 
 ### Fields
 
-| Type              | Format                                |
-|-------------------|---------------------------------------|
-| `ccm`             | [CCM](./ccm)                          |
-| `derp`            | [DERP](./derp)                        |
-| `hysteria-realm`  | [Hysteria Realm](./hysteria-realm)    |
-| `ocm`             | [OCM](./ocm)                          |
-| `resolved`        | [Resolved](./resolved)                |
-| `ssm-api`         | [SSM API](./ssm-api)                  |
+| Type       | Format                 |
+|------------|------------------------|
+| `ccm`      | [CCM](./ccm)           |
+| `derp`     | [DERP](./derp)         |
+| `ocm`      | [OCM](./ocm)           |
+| `resolved` | [Resolved](./resolved) |
+| `ssm-api`  | [SSM API](./ssm-api)   |
 
 #### tag
 

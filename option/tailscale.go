@@ -3,9 +3,9 @@ package option
 import (
 	"net/netip"
 	"net/url"
+	"reflect"
 
 	"github.com/sagernet/sing/common/json"
-	"github.com/sagernet/sing/common/json/badjson"
 	"github.com/sagernet/sing/common/json/badoption"
 	M "github.com/sagernet/sing/common/metadata"
 )
@@ -29,41 +29,11 @@ type TailscaleEndpointOptions struct {
 	SystemInterfaceName        string                     `json:"system_interface_name,omitempty"`
 	SystemInterfaceMTU         uint32                     `json:"system_interface_mtu,omitempty"`
 	UDPTimeout                 UDPTimeoutCompat           `json:"udp_timeout,omitempty"`
-	SSHServer                  *TailscaleSSHServerOptions `json:"ssh_server,omitempty"`
-}
-
-type _TailscaleSSHServerOptions struct {
-	Enabled           bool `json:"enabled,omitempty"`
-	DisablePTY        bool `json:"disable_pty,omitempty"`
-	DisableSFTP       bool `json:"disable_sftp,omitempty"`
-	DisableForwarding bool `json:"disable_forwarding,omitempty"`
-}
-
-type TailscaleSSHServerOptions _TailscaleSSHServerOptions
-
-func (o TailscaleSSHServerOptions) MarshalJSON() ([]byte, error) {
-	if !o.DisablePTY && !o.DisableSFTP && !o.DisableForwarding {
-		return json.Marshal(o.Enabled)
-	}
-	return json.Marshal(_TailscaleSSHServerOptions(o))
-}
-
-func (o *TailscaleSSHServerOptions) UnmarshalJSON(bytes []byte) error {
-	err := json.Unmarshal(bytes, &o.Enabled)
-	if err == nil {
-		return nil
-	}
-	return json.UnmarshalDisallowUnknownFields(bytes, (*_TailscaleSSHServerOptions)(o))
 }
 
 type TailscaleDNSServerOptions struct {
 	Endpoint               string `json:"endpoint,omitempty"`
 	AcceptDefaultResolvers bool   `json:"accept_default_resolvers,omitempty"`
-	AcceptSearchDomain     bool   `json:"accept_search_domain,omitempty"`
-}
-
-type TailscaleCertificateProviderOptions struct {
-	Endpoint string `json:"endpoint,omitempty"`
 }
 
 type DERPServiceOptions struct {
@@ -79,13 +49,9 @@ type DERPServiceOptions struct {
 	STUN                 *DERPSTUNListenOptions                          `json:"stun,omitempty"`
 }
 
-type _DERPVerifyClientURLBase struct {
-	URL string `json:"url,omitempty"`
-}
-
 type _DERPVerifyClientURLOptions struct {
-	_DERPVerifyClientURLBase
-	HTTPClientOptions
+	URL string `json:"url,omitempty"`
+	DialerOptions
 }
 
 type DERPVerifyClientURLOptions _DERPVerifyClientURLOptions
@@ -99,32 +65,21 @@ func (d DERPVerifyClientURLOptions) ServerIsDomain() bool {
 }
 
 func (d DERPVerifyClientURLOptions) MarshalJSON() ([]byte, error) {
-	if d.URL != "" && d.HTTPClientOptions.IsEmpty() {
+	if reflect.DeepEqual(d, _DERPVerifyClientURLOptions{}) {
 		return json.Marshal(d.URL)
+	} else {
+		return json.Marshal(_DERPVerifyClientURLOptions(d))
 	}
-	return badjson.MarshallObjects(d._DERPVerifyClientURLBase, HTTPClient(d.HTTPClientOptions))
 }
 
 func (d *DERPVerifyClientURLOptions) UnmarshalJSON(bytes []byte) error {
 	var stringValue string
 	err := json.Unmarshal(bytes, &stringValue)
 	if err == nil {
-		*d = DERPVerifyClientURLOptions{
-			_DERPVerifyClientURLBase: _DERPVerifyClientURLBase{URL: stringValue},
-		}
+		d.URL = stringValue
 		return nil
 	}
-	err = json.Unmarshal(bytes, &d._DERPVerifyClientURLBase)
-	if err != nil {
-		return err
-	}
-	var client HTTPClient
-	err = badjson.UnmarshallExcluded(bytes, &d._DERPVerifyClientURLBase, &client)
-	if err != nil {
-		return err
-	}
-	d.HTTPClientOptions = HTTPClientOptions(client)
-	return nil
+	return json.Unmarshal(bytes, (*_DERPVerifyClientURLOptions)(d))
 }
 
 type DERPMeshOptions struct {

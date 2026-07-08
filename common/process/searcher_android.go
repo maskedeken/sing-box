@@ -7,7 +7,6 @@ import (
 	"github.com/sagernet/sing-box/adapter"
 	"github.com/sagernet/sing-tun"
 	"github.com/sagernet/sing/common"
-	E "github.com/sagernet/sing/common/exceptions"
 )
 
 var _ Searcher = (*androidSearcher)(nil)
@@ -17,9 +16,6 @@ type androidSearcher struct {
 }
 
 func NewSearcher(config Config) (Searcher, error) {
-	if config.PackageManager == nil {
-		return nil, E.New("missing package manager")
-	}
 	return &androidSearcher{config.PackageManager}, nil
 }
 
@@ -38,15 +34,13 @@ func (s *androidSearcher) FindProcessInfo(ctx context.Context, network string, s
 	}
 	appID := uid % 100000
 	var packageNames []string
-	if s.packageManager != nil {
-		if sharedPackage, loaded := s.packageManager.SharedPackageByID(appID); loaded {
-			packageNames = append(packageNames, sharedPackage)
-		}
-		if packages, loaded := s.packageManager.PackagesByID(appID); loaded {
-			packageNames = append(packageNames, packages...)
-		}
-		packageNames = common.Uniq(packageNames)
+	if sharedPackage, loaded := s.packageManager.SharedPackageByID(appID); loaded {
+		packageNames = append(packageNames, sharedPackage)
 	}
+	if packages, loaded := s.packageManager.PackagesByID(appID); loaded {
+		packageNames = append(packageNames, packages...)
+	}
+	packageNames = common.Uniq(packageNames)
 	return &adapter.ConnectionOwner{
 		UserId:              int32(uid),
 		AndroidPackageNames: packageNames,

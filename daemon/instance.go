@@ -87,17 +87,12 @@ func (s *StartedService) newInstance(profileContent string, overrideOptions *Ove
 			}
 		}
 	}
-	if s.oomKillerEnabled {
+	if s.oomKiller && C.IsIos {
 		if !common.Any(options.Services, func(it option.Service) bool {
 			return it.Type == C.TypeOOMKiller
 		}) {
-			oomOptions := &option.OOMKillerServiceOptions{
-				KillerDisabled:      s.oomKillerDisabled,
-				MemoryLimitOverride: s.oomMemoryLimit,
-			}
 			options.Services = append(options.Services, option.Service{
-				Type:    C.TypeOOMKiller,
-				Options: oomOptions,
+				Type: C.TypeOOMKiller,
 			})
 		}
 	}

@@ -10,8 +10,6 @@ import (
 	"sync"
 	"time"
 
-	E "github.com/sagernet/sing/common/exceptions"
-
 	"github.com/miekg/dns"
 )
 
@@ -30,14 +28,6 @@ func NewFile(path string) *File {
 	return &File{
 		path: path,
 	}
-}
-
-func NewDefault() (*File, error) {
-	defaultPathResolved, err := defaultPath()
-	if err != nil {
-		return nil, E.Cause(err, "resolve default hosts path")
-	}
-	return NewFile(defaultPathResolved), nil
 }
 
 func (f *File) Lookup(name string) []netip.Addr {
